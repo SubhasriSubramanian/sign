@@ -577,29 +577,24 @@
                 return `https://placehold.co/80x80/0056b3/ffffff?text=${text}&font=arial&bold=true`;
             };
 
-            // --- FINGERSPELLING IMAGE PATHS (Now incorporating the provided X.png) ---
+            // --- FINGERSPELLING IMAGE PATHS (Using relative paths with fallback) ---
             const ASL_IMAGE_PATHS = {};
             
-            // Populate A-Z (using placeholders by default)
+            // Populate A-Z (using relative paths, e.g., images/A.png)
             for (let i = 65; i <= 90; i++) {
                 const char = String.fromCharCode(i);
-                ASL_IMAGE_PATHS[char] = generatePlaceholderSign(char);
+                ASL_IMAGE_PATHS[char] = `images/${char}.png`;
             }
-            // Populate 1-9
+            // Populate 1-9 (using relative paths, e.g., images/1.png)
             for (let i = 1; i <= 9; i++) {
                 const char = String(i);
-                ASL_IMAGE_PATHS[char] = generatePlaceholderSign(char);
+                ASL_IMAGE_PATHS[char] = `images/${char}.png`;
             }
             // Add space
             ASL_IMAGE_PATHS[' '] = generatePlaceholderSign(''); 
-
-            // ** CUSTOM OVERRIDE FOR X **
-            // Use the relative path for the provided image 'X.png'. 
-            // NOTE: This will only load correctly if the file 'images/X.png' exists 
-            // in the final deployed folder structure, otherwise, it will show a broken image icon.
-            ASL_IMAGE_PATHS['X'] = 'images/X.png';
-            ASL_IMAGE_PATHS['X'] = 'images/X.png'; 
-
+            
+            // NOTE: The fallback logic in simulateFingerspelling will handle non-loading images/X.png etc.
+            // by substituting the working placeholder image.
 
             // --- 1. Forward Translation (Text/Voice -> Sign) Logic ---
 
@@ -661,15 +656,13 @@
                             img.alt = `Sign for ${letter}`;
                             img.classList.add('animated-sign');
                             
-                            // Add onerror handler for external image files
-                            if (letter === 'X') {
-                                img.onerror = function() {
-                                    this.onerror = null; // Prevent infinite loop
-                                    // Fallback to the working placeholder if the image path is broken
-                                    this.src = generatePlaceholderSign('X');
-                                    console.warn(`Could not load images/X.png. Using placeholder instead.`);
-                                };
-                            }
+                            // Universal onerror handler for all fingerspelling images
+                            img.onerror = function() {
+                                this.onerror = null; // Prevent infinite loop
+                                // Fallback to the working placeholder if the image path is broken
+                                this.src = generatePlaceholderSign(letter);
+                                console.warn(`Could not load images/${letter}.png. Using placeholder instead.`);
+                            };
                             
                             // Append to the current word container
                             wordContainer.appendChild(img);
@@ -695,21 +688,21 @@
                 
                 // --- Single Letter Fingerspelling Check ---
                 const singleLetter = inputText.trim().toUpperCase();
-                if (singleLetter.length === 1 && ASL_IMAGE_PATHS[singleLetter]) {
+                if (singleLetter.length === 1 && ASL_IMAGE_PATHS[singleLetter] && singleLetter !== ' ') {
                     fingerspellOutput.innerHTML = '';
                     const img = document.createElement('img');
-                    img.src = ASL_IMAGE_PATHS[singleLetter];
+                    const signPath = ASL_IMAGE_PATHS[singleLetter];
+                    
+                    img.src = signPath;
                     img.alt = `Sign for ${singleLetter}`;
                     img.classList.add('animated-sign');
                     
-                    // Add onerror handler for the specific 'X' image
-                    if (singleLetter === 'X') {
-                         img.onerror = function() {
-                            this.onerror = null;
-                            this.src = generatePlaceholderSign('X');
-                            console.warn(`Could not load images/X.png. Using placeholder instead.`);
-                        };
-                    }
+                    // Add onerror handler for the specific single image check
+                    img.onerror = function() {
+                        this.onerror = null;
+                        this.src = generatePlaceholderSign(singleLetter);
+                        console.warn(`Could not load images/${singleLetter}.png. Using placeholder instead.`);
+                    };
 
                     fingerspellOutput.appendChild(img);
                     
@@ -727,8 +720,10 @@
                 document.getElementById('animation-display').innerHTML = '<p style="font-weight: bold; color: var(--primary-color);">Starting Translation...</p>';
                 emotionOutput.textContent = 'Processing...';
 
+                // Use the input text as the 'keyword' for fingerspelling if no specific sign dictionary entry matches
                 const result = getSimulatedSign(inputText);
-                
+                const textToSpell = result.keyword === 'MESSAGE' ? inputText.toUpperCase() : result.keyword; 
+
                 document.getElementById('animation-display').innerHTML = '';
                 
                 // 1. Input Module Acknowledgment
@@ -741,19 +736,29 @@
 
                 // 3. NLP Module Simulation (500ms)
                 await new Promise(resolve => setTimeout(resolve, 500));
-                updateDisplay(`3. NLP & Gloss Conversion: → Gloss: "${result.gloss}"`, 'simulation-step');
+                
+                let glossOutput = result.gloss;
+                let step4Message = `4. Animation Mapping: Generating image sequence for: ${textToSpell}...`;
 
-                // 4. Animation Mapping: Use the main keyword for fingerspelling
+                if (result.keyword === 'MESSAGE') {
+                    // For unknown messages, simulate NLP trying to break it down and falling back to fingerspelling
+                    glossOutput = `(Fingerspelling: ${inputText.toUpperCase().substring(0, 15)}...)`;
+                    step4Message = `3. NLP & Gloss Conversion: No direct sign found. Falling back to Fingerspelling.`;
+                }
+
+                updateDisplay(`3. NLP & Gloss Conversion: → Gloss: "${glossOutput}"`, 'simulation-step');
+                
+                // 4. Animation Mapping
                 await new Promise(resolve => setTimeout(resolve, 750));
-                updateDisplay(`4. Animation Mapping: Generating image sequence for: ${result.keyword}...`, 'simulation-step');
+                updateDisplay(step4Message, 'simulation-step');
                 
                 // 5. Simulate Fingerspelling Animation (Visual Output)
-                const animationDuration = simulateFingerspelling(result.keyword);
+                const animationDuration = simulateFingerspelling(textToSpell);
                 await new Promise(resolve => setTimeout(resolve, animationDuration + 500));
 
                 // 6. Output Module Final Render
                 const finalMessage = `<p style="font-size: 1.2rem; font-weight: bold; color: var(--secondary-color); margin-top: 15px;">✅ Translation Complete (2D/3D Animation Ready)!</p>
-                                      <p>Sign Language Output for: **${result.gloss}**</p>
+                                      <p>Sign Language Output based on: **${textToSpell}**</p>
                                       <p style="font-size: 0.9rem; color: #6c757d;">(Final sign sequence completed in ${animationDuration / 1000} seconds. Emotion: ${result.emotion.split(' ')[0]})</p>`;
 
                 document.getElementById('animation-display').innerHTML += finalMessage; 
