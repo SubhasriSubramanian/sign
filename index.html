@@ -643,6 +643,8 @@
                     wordContainer.style.display = 'flex';
                     wordContainer.style.gap = '5px';
                     wordContainer.style.margin = '5px';
+                    // Ensure horizontal display for letters within a word
+                    wordContainer.style.flexDirection = 'row'; 
                     fingerspellOutput.appendChild(wordContainer);
 
                     letters.forEach((letter) => {
@@ -686,8 +688,10 @@
                     return;
                 }
                 
+                const trimmedInput = inputText.trim().toLowerCase();
+                const singleLetter = trimmedInput.toUpperCase();
+                
                 // --- Single Letter Fingerspelling Check ---
-                const singleLetter = inputText.trim().toUpperCase();
                 if (singleLetter.length === 1 && ASL_IMAGE_PATHS[singleLetter] && singleLetter !== ' ') {
                     fingerspellOutput.innerHTML = '';
                     const img = document.createElement('img');
@@ -720,9 +724,17 @@
                 document.getElementById('animation-display').innerHTML = '<p style="font-weight: bold; color: var(--primary-color);">Starting Translation...</p>';
                 emotionOutput.textContent = 'Processing...';
 
-                // Use the input text as the 'keyword' for fingerspelling if no specific sign dictionary entry matches
                 const result = getSimulatedSign(inputText);
-                const textToSpell = result.keyword === 'MESSAGE' ? inputText.toUpperCase() : result.keyword; 
+                
+                let textToSpell;
+                
+                // Custom logic: If the input matches a dictionary key exactly (e.g., "sad"), 
+                // use the original input text for fingerspelling, otherwise use the found keyword.
+                if (signDictionary[trimmedInput]) {
+                     textToSpell = trimmedInput;
+                } else {
+                     textToSpell = result.keyword;
+                }
 
                 document.getElementById('animation-display').innerHTML = '';
                 
@@ -738,7 +750,7 @@
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
                 let glossOutput = result.gloss;
-                let step4Message = `4. Animation Mapping: Generating image sequence for: ${textToSpell}...`;
+                let step4Message = `4. Animation Mapping: Generating image sequence for: ${textToSpell.toUpperCase()}...`;
 
                 if (result.keyword === 'MESSAGE') {
                     // For unknown messages, simulate NLP trying to break it down and falling back to fingerspelling
@@ -753,12 +765,13 @@
                 updateDisplay(step4Message, 'simulation-step');
                 
                 // 5. Simulate Fingerspelling Animation (Visual Output)
+                // Use the precise input if it was a dictionary word, otherwise use the detected keyword
                 const animationDuration = simulateFingerspelling(textToSpell);
                 await new Promise(resolve => setTimeout(resolve, animationDuration + 500));
 
                 // 6. Output Module Final Render
                 const finalMessage = `<p style="font-size: 1.2rem; font-weight: bold; color: var(--secondary-color); margin-top: 15px;">✅ Translation Complete (2D/3D Animation Ready)!</p>
-                                      <p>Sign Language Output based on: **${textToSpell}**</p>
+                                      <p>Sign Language Output based on: **${textToSpell.toUpperCase()}**</p>
                                       <p style="font-size: 0.9rem; color: #6c757d;">(Final sign sequence completed in ${animationDuration / 1000} seconds. Emotion: ${result.emotion.split(' ')[0]})</p>`;
 
                 document.getElementById('animation-display').innerHTML += finalMessage; 
