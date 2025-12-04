@@ -570,20 +570,36 @@
             let captureTimeout = null;
             let videoStream = null;
 
-            // --- FINGERSPELLING IMAGE PATHS (Using provided file names) ---
-            // NOTE: All files except download.jpg are .png
-            const ASL_IMAGE_PATHS = {
-                'A': 'images/A.png', 'B': 'images/B.png', 'C': 'images/C.png', 'D': 'images/D.png', 'E': 'images/E.png',
-                'F': 'images/F.png', 'G': 'images/G.png', 'H': 'images/H.png', 'I': 'images/I.png', 'J': 'images/J.png',
-                'K': 'images/K.png', 'L': 'images/L.png', 'M': 'images/M.png', 'N': 'images/N.png', 'O': 'images/O.png',
-                'P': 'images/P.png', 'Q': 'images/Q.png', 'R': 'images/R.png', 'S': 'images/S.png', 'T': 'images/T.png',
-                'U': 'images/U.png', 'V': 'images/V.png', 'W': 'images/W.png', 'X': 'images/X.png', 'Y': 'images/Y.png',
-                'Z': 'images/Z.png',
-                // Numbers (corrected to .png)
-                '1': 'images/1.png', '2': 'images/2.png', '3': 'images/3.png', '4': 'images/4.png', '5': 'images/5.png',
-                '6': 'images/6.png', '7': 'images/7.png', '8': 'images/8.png', '9': 'images/9.png',
-                ' ': 'https://placehold.co/80x80/ffffff/ffffff?text=' // Placeholder for space
+            // --- FUNCTION TO GENERATE PLACEHOLDER IMAGE URLS FOR SIGNS ---
+            const generatePlaceholderSign = (char) => {
+                const text = char === ' ' ? '' : char;
+                // Using placehold.co to simulate the sign images for A-Z and 1-9
+                return `https://placehold.co/80x80/0056b3/ffffff?text=${text}&font=arial&bold=true`;
             };
+
+            // --- FINGERSPELLING IMAGE PATHS (Now incorporating the provided X.png) ---
+            const ASL_IMAGE_PATHS = {};
+            
+            // Populate A-Z (using placeholders by default)
+            for (let i = 65; i <= 90; i++) {
+                const char = String.fromCharCode(i);
+                ASL_IMAGE_PATHS[char] = generatePlaceholderSign(char);
+            }
+            // Populate 1-9
+            for (let i = 1; i <= 9; i++) {
+                const char = String(i);
+                ASL_IMAGE_PATHS[char] = generatePlaceholderSign(char);
+            }
+            // Add space
+            ASL_IMAGE_PATHS[' '] = generatePlaceholderSign(''); 
+
+            // ** CUSTOM OVERRIDE FOR X **
+            // Use the relative path for the provided image 'X.png'. 
+            // NOTE: This will only load correctly if the file 'images/X.png' exists 
+            // in the final deployed folder structure, otherwise, it will show a broken image icon.
+            ASL_IMAGE_PATHS['X'] = 'images/X.png';
+            ASL_IMAGE_PATHS['X'] = 'images/X.png'; 
+
 
             // --- 1. Forward Translation (Text/Voice -> Sign) Logic ---
 
@@ -591,7 +607,7 @@
                 "happy": { gloss: "FEEL HAPPY", emotion: "Joyful 😄", signs: "SMILE and WIPE-CHEST (joyful motion)", keyword: "HAPPY" },
                 "sad": { gloss: "FEEL SAD", emotion: "Sad 😢", signs: "FIST-DOWNWARD-MOTION, then LOWERED-BROW (slow motion)", keyword: "SAD" },
                 "angry": { gloss: "FEEL ANGRY", emotion: "Angry 😠", signs: "CLAW-HAND-TO-FACE, then TENSE-BODY (fast and abrupt motion)", keyword: "ANGRY" },
-                "frustrated": { gloss: "FEEL FRUSTRATED", emotion: "Angry 😠", signs: "KNUCKLES-TO-CHIN, fast, abrupt motion", keyword: "ANGRY" },
+                "frustrated": { gloss: "FEEL FRUSTRATED", emotion: "Angry 😠", signs: "KNUCKLES-TO-CHIN, fast, abrupt motion", keyword: "FRUSTRATED" },
                 "hello": { gloss: "GREET", emotion: "Neutral 👤", signs: "OPEN-HAND-WAVE (standard speed)", keyword: "HELLO" },
                 "today": { gloss: "NOW DAY", emotion: "Neutral 👤", signs: "TWO-FINGERS-POINTING-DOWN-AND-ARCING", keyword: "TODAY" },
                 "default": { gloss: "MESSAGE UNKNOWN", emotion: "Neutral ❓", signs: "SHOULDER-SHRUG (Standard Speed)", keyword: "MESSAGE" }
@@ -601,7 +617,8 @@
                 const lowerText = text.toLowerCase();
                 if (lowerText.includes("happy") || lowerText.includes("joy")) return signDictionary.happy;
                 if (lowerText.includes("sad") || lowerText.includes("down") || lowerText.includes("bad")) return signDictionary.sad;
-                if (lowerText.includes("angry") || lowerText.includes("mad") || lowerText.includes("frustrated")) return signDictionary.angry;
+                if (lowerText.includes("angry") || lowerText.includes("mad")) return signDictionary.angry;
+                if (lowerText.includes("frustrated")) return signDictionary.frustrated;
                 if (lowerText.includes("hello") || lowerText.includes("hi")) return signDictionary.hello;
                 if (lowerText.includes("today") || lowerText.includes("now")) return signDictionary.today;
                 return signDictionary.default;
@@ -616,33 +633,55 @@
             };
             
             const simulateFingerspelling = (word) => {
-                fingerspellOutput.innerHTML = '<p style="color: #6c757d;">Rendering sequence...</p>';
-                const letters = word.toUpperCase().split('');
+                fingerspellOutput.innerHTML = '<p style="color: #6c757d; width: 100%;">Rendering sequence...</p>';
+                const words = word.toUpperCase().split(' ');
                 let delay = 0;
-                let currentWordContainer = document.createElement('div');
-                fingerspellOutput.appendChild(currentWordContainer);
+                
+                // Clear and re-populate with placeholder for a clean start
+                fingerspellOutput.innerHTML = '';
 
-                letters.forEach((letter) => {
-                    const signPath = ASL_IMAGE_PATHS[letter];
-                    if (!signPath) return; // Skip unknown characters
+                words.forEach((w, wordIndex) => {
+                    const letters = w.split('');
                     
-                    setTimeout(() => {
-                        // Create image element
-                        const img = document.createElement('img');
-                        img.src = signPath;
-                        img.alt = `Sign for ${letter}`;
-                        img.classList.add('animated-sign');
-                        
-                        // Append to the current word container
-                        currentWordContainer.appendChild(img);
+                    // Container for the current word signs
+                    const wordContainer = document.createElement('div');
+                    wordContainer.style.display = 'flex';
+                    wordContainer.style.gap = '5px';
+                    wordContainer.style.margin = '5px';
+                    fingerspellOutput.appendChild(wordContainer);
 
-                        // If it's a space, create a new container for the next word
-                        if (letter === ' ') {
-                            currentWordContainer = document.createElement('div');
-                            fingerspellOutput.appendChild(currentWordContainer);
-                        }
-                    }, delay);
-                    delay += 500; // 500ms delay per sign
+                    letters.forEach((letter) => {
+                        const signPath = ASL_IMAGE_PATHS[letter];
+                        if (!signPath) return; // Skip unknown characters
+                        
+                        setTimeout(() => {
+                            // Create image element
+                            const img = document.createElement('img');
+                            img.src = signPath;
+                            img.alt = `Sign for ${letter}`;
+                            img.classList.add('animated-sign');
+                            
+                            // Add onerror handler for external image files
+                            if (letter === 'X') {
+                                img.onerror = function() {
+                                    this.onerror = null; // Prevent infinite loop
+                                    // Fallback to the working placeholder if the image path is broken
+                                    this.src = generatePlaceholderSign('X');
+                                    console.warn(`Could not load images/X.png. Using placeholder instead.`);
+                                };
+                            }
+                            
+                            // Append to the current word container
+                            wordContainer.appendChild(img);
+
+                        }, delay);
+                        delay += 500; // 500ms delay per sign
+                    });
+                    
+                    // Add delay for the space between words
+                    if (wordIndex < words.length - 1) {
+                        delay += 500; 
+                    }
                 });
                 return delay;
             };
@@ -662,6 +701,16 @@
                     img.src = ASL_IMAGE_PATHS[singleLetter];
                     img.alt = `Sign for ${singleLetter}`;
                     img.classList.add('animated-sign');
+                    
+                    // Add onerror handler for the specific 'X' image
+                    if (singleLetter === 'X') {
+                         img.onerror = function() {
+                            this.onerror = null;
+                            this.src = generatePlaceholderSign('X');
+                            console.warn(`Could not load images/X.png. Using placeholder instead.`);
+                        };
+                    }
+
                     fingerspellOutput.appendChild(img);
                     
                     document.getElementById('animation-display').innerHTML = `<p style="font-size: 1.2rem; font-weight: bold; color: var(--secondary-color);">✅ Single Sign Output: ${singleLetter}</p>`;
@@ -673,7 +722,8 @@
 
                 translateBtn.disabled = true;
                 voiceInputBtn.disabled = true;
-                fingerspellOutput.innerHTML = '<p style="color: var(--primary-color);">Starting Sign Sequence...</p>';
+                
+                fingerspellOutput.innerHTML = '<p style="color: var(--primary-color); width: 100%;">Starting Sign Sequence...</p>';
                 document.getElementById('animation-display').innerHTML = '<p style="font-weight: bold; color: var(--primary-color);">Starting Translation...</p>';
                 emotionOutput.textContent = 'Processing...';
 
@@ -682,7 +732,7 @@
                 document.getElementById('animation-display').innerHTML = '';
                 
                 // 1. Input Module Acknowledgment
-                updateDisplay(`Input Received: "${inputText.substring(0, 40)}..."`, 'simulation-step');
+                updateDisplay(`1. Input Received: "${inputText.substring(0, 40)}..."`, 'simulation-step');
 
                 // 2. Emotion Detection Module Simulation (250ms)
                 await new Promise(resolve => setTimeout(resolve, 250));
@@ -703,8 +753,8 @@
 
                 // 6. Output Module Final Render
                 const finalMessage = `<p style="font-size: 1.2rem; font-weight: bold; color: var(--secondary-color); margin-top: 15px;">✅ Translation Complete (2D/3D Animation Ready)!</p>
-                                     <p>Sign Language Output for: **${result.gloss}**</p>
-                                     <p style="font-size: 0.9rem; color: #6c757d;">(Final sign sequence completed in ${animationDuration / 1000} seconds. Emotion: ${result.emotion.split(' ')[0]})</p>`;
+                                      <p>Sign Language Output for: **${result.gloss}**</p>
+                                      <p style="font-size: 0.9rem; color: #6c757d;">(Final sign sequence completed in ${animationDuration / 1000} seconds. Emotion: ${result.emotion.split(' ')[0]})</p>`;
 
                 document.getElementById('animation-display').innerHTML += finalMessage; 
                 translateBtn.disabled = false;
@@ -741,6 +791,7 @@
                     const speechResult = event.results[0][0].transcript;
                     textInput.value = speechResult;
                     document.getElementById('animation-display').innerHTML = `<p style="color:var(--secondary-color); font-weight: 500;">✅ Voice Input Transcribed: "${speechResult.substring(0, 30)}..."</p>`;
+                    translateText(speechResult); // Automatically trigger translation after result
                 };
 
                 recognition.onerror = (event) => {
@@ -764,21 +815,20 @@
                         document.getElementById('animation-display').innerHTML = `<p style="color:#007bff; font-weight: bold;">🔊 Waiting for speech in ${languageSelect.options[languageSelect.selectedIndex].text}...</p>`;
                     } catch (e) {
                         if (e.name !== 'InvalidStateError') {
-                             document.getElementById('animation-display').innerHTML = `<p style="color: red;">Microphone Error: ${e.message}</p>`;
+                            document.getElementById('animation-display').innerHTML = `<p style="color: red;">Microphone Error: ${e.message}</p>`;
                         }
                     }
                 });
 
             } else {
                 voiceInputBtn.disabled = true;
-                voiceInputBtn.textContent = 'Voice Not Supported';
+                voiceInputBtn.textContent = 'Voice Not Supported (Browser API Missing)';
                 document.getElementById('animation-display').innerHTML = '<p style="color: red; margin-top: 10px;">Warning: Web Speech API not supported. Only text input works.</p>';
             }
             
             // --- 2. Reverse Translation (Sign -> Text) Logic ---
 
             // A. Emotion Control
-            const emotionControlBtns = document.querySelectorAll('.emotion-control-btn');
             emotionControlBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
                     currentDetectedEmotion = btn.getAttribute('data-emotion');
@@ -786,10 +836,11 @@
                     btn.classList.add('active');
                 });
             });
-            document.querySelector('.emotion-control-btn[data-emotion="neutral"]').click();
+            // Initialize default emotion
+            document.querySelector('.emotion-control-btn[data-emotion="neutral"]').click(); 
 
             // B. Camera and Detection Logic
-            const stopCameraAndDetection = () => {
+            const stopCameraAndDetection = (reason = 'Off') => {
                 if (videoStream) {
                     videoStream.getTracks().forEach(track => track.stop());
                     videoStream = null;
@@ -799,15 +850,18 @@
 
                 cameraVideo.style.display = 'none';
                 cameraPlaceholder.style.display = 'flex';
-                cameraStatus.textContent = 'Camera Status: Off';
+                cameraStatus.textContent = `Camera Status: ${reason}`;
                 cameraStatus.style.color = 'var(--listening-color)';
                 cameraInputBtn.textContent = '🎥 Start Sign Recognition (Capture)';
+                cameraInputBtn.disabled = false;
                 
-                gestureStatus.innerHTML = '<p style="color: #6c757d;">Click \'Start Capture\' above to begin processing the sign language input.</p>';
+                if (reason === 'Off') {
+                    gestureStatus.innerHTML = '<p style="color: #6c757d;">Click \'Start Capture\' above to begin processing the sign language input.</p>';
+                }
             }
 
             cameraInputBtn.addEventListener('click', () => {
-                if (videoStream) {
+                if (videoStream || detectionInterval) {
                     stopCameraAndDetection();
                     return;
                 }
@@ -819,7 +873,7 @@
                 cameraStatus.style.color = 'var(--secondary-color)';
                 cameraInputBtn.textContent = '⏹️ Stop Capture';
                 
-                // Attempt to start real camera stream (will fail on HTTP, but UI is active)
+                // Attempt to start real camera stream
                 navigator.mediaDevices.getUserMedia({ video: true })
                     .then(stream => {
                         videoStream = stream;
@@ -827,7 +881,9 @@
                         cameraStatus.textContent = 'Camera Status: Live Stream Active';
                     })
                     .catch(err => {
+                        // In an iFrame, this often fails due to security restrictions.
                         cameraStatus.textContent = 'Camera Status: Active (Stream Blocked, Using Simulation)';
+                        console.error("Camera access denied or blocked in iFrame:", err);
                     });
 
                 startDetectionSimulation();
@@ -847,18 +903,15 @@
                 if (captureTimeout) clearTimeout(captureTimeout);
 
                 const finalCaptureText = `<p class="final-text" style="color: var(--secondary-color);">✅ **Capture Complete!**</p>
-                                        <p class="final-text">**Interpreted Sentence:** "Thank you."</p>
-                                        <p style="font-size: 0.9rem; color: #6c757d;">(Gloss: THANK YOU, Expression: ${currentDetectedEmotion.toUpperCase()})</p>`;
+                                         <p class="final-text">**Interpreted Sentence:** "Thank you. I feel ${currentDetectedEmotion}."</p>
+                                         <p style="font-size: 0.9rem; color: #6c757d;">(Gloss: THANK YOU, Expression: ${currentDetectedEmotion.toUpperCase()})</p>`;
 
                 captureTimeout = setTimeout(() => {
-                    clearInterval(detectionInterval);
-                    cameraInputBtn.disabled = false;
-                    cameraVideo.style.borderColor = 'var(--primary-color)';
-                    cameraStatus.textContent = 'Camera Status: Capture Complete';
+                    stopCameraAndDetection('Capture Complete');
                     gestureStatus.innerHTML = finalCaptureText;
                 }, TIMEOUT_DURATION);
                 
-                cameraInputBtn.disabled = true;
+                cameraInputBtn.disabled = false; // Allow stopping capture manually
                 cameraVideo.style.borderColor = 'var(--listening-color)';
 
 
