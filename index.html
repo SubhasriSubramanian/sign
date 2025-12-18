@@ -180,120 +180,40 @@
             transform: none;
         }
 
-        /* --- Reverse Translation Controls --- */
-        .reverse-display-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 30px;
-            margin-top: 20px;
-        }
-
-        @media (min-width: 768px) {
-            .reverse-display-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .camera-input-box, #sign-detection-output-box {
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            background-color: #f9f9f9;
-        }
-
-        .emotion-control-btn {
-            padding: 8px 15px;
-            border: 2px solid;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .emotion-control-btn[data-emotion="joyful"] { border-color: #4CAF50; color: #4CAF50; background-color: #e8f5e9; }
-        .emotion-control-btn[data-emotion="angry"] { border-color: #F44336; color: #F44336; background-color: #ffebee; }
-        .emotion-control-btn[data-emotion="neutral"] { border-color: #9E9E9E; color: #9E9E9E; background-color: #f5f5f5; }
-        .emotion-control-btn.active { box-shadow: 0 0 0 3px var(--primary-color); transform: scale(1.05); }
-
-
-        /* --- Camera/Video Setup --- */
-        .camera-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        #camera-video, #camera-placeholder {
-            width: 100%;
-            max-width: 400px;
-            height: 250px;
-            border: 2px solid var(--detected-color);
-            border-radius: 8px;
-            transform: scaleX(-1); /* Mirror view for natural interaction */
-            background-color: #333; /* Dark background for video */
-        }
-        
-        #camera-placeholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 500;
-            text-align: center;
-            background: #222;
-        }
-        
-        #camera-video {
-            display: none; /* Hidden until stream starts */
-        }
-        
-        #camera-status {
-            font-weight: bold;
-            color: var(--listening-color);
-        }
-
-        /* --- Detection Output Styling --- */
-        #sign-detection-output-box h4 {
-            color: var(--detected-color);
-            border-bottom: 1px solid #e0e0e0;
-            padding-bottom: 5px;
-            margin-bottom: 10px;
-        }
-
-        #gesture-status p {
-            margin: 5px 0;
-            font-size: 1.1rem;
-            color: #333;
-        }
-
-        #gesture-status .final-text {
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-top: 10px;
-            border-top: 1px dashed #ccc;
-            padding-top: 10px;
-        }
-        
-        /* Fingerspelling Output */
+        /* --- Fingerspelling Row Display --- */
         #fingerspell-output {
-            min-height: 100px;
-            margin-top: 10px;
+            min-height: 120px;
+            margin-top: 15px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            align-items: flex-start;
-            gap: 8px;
+            align-items: center;
+            gap: 12px;
+            padding: 20px;
+            background: #fff;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+
+        .word-container {
+            display: flex;
+            flex-direction: row;
+            gap: 5px;
+            margin: 5px;
+            padding: 5px;
+            border-radius: 8px;
+            background: #f0f7ff;
         }
 
         #fingerspell-output img {
-            width: 80px; /* Standard size for one sign image */
-            height: 80px;
+            width: 85px;
+            height: 85px;
             object-fit: contain;
             border: 2px solid var(--primary-color);
             border-radius: 8px;
             background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         .animated-sign {
@@ -350,15 +270,6 @@
         }
 
         /* --- Other Sections --- */
-        ol, ul {
-            padding-left: 20px;
-            list-style: disc;
-        }
-
-        ol li, ul li {
-            margin-bottom: 10px;
-        }
-
         .flowchart-image {
             text-align: center;
             margin: 30px 0;
@@ -403,7 +314,7 @@
         <section id="home">
             <div id="hero">
                 <h2>Bridging Communication Gaps with Intelligent Translation</h2>
-                <p>We propose a Text to Sign Language Image Animation Generation System that facilitates inclusive communication by converting text or voice inputs into animated sign language representations. This system is enhanced with **multimodal interaction** and **emotion-aware feedback** for a natural, responsive, and empathetic experience.</p>
+                <p>We propose a Text to Sign Language Image Animation Generation System that facilitates inclusive communication by converting text or voice inputs into animated sign language representations.</p>
                 <a href="#demo" class="cta-button">Start Communication</a>
             </div>
         </section>
@@ -411,14 +322,11 @@
         <!-- Demo Section -->
         <section id="demo" class="container">
             <h2>Live Demonstration (Prototype)</h2>
-            <p>This prototype demonstrates **Two-Way Communication** and the core steps of the system architecture.</p>
             
-            <!-- Forward Translation (Text/Voice -> Sign) -->
             <h3>1. Forward Translation (Text/Voice $\rightarrow$ Sign)</h3>
-            <p>Input text or speak a message in English, Tamil, or Hindi. The system detects the emotion and generates the sign sequence.</p>
+            <p>Input text or speak a message. The system detects the emotion and generates the sign sequence.</p>
 
             <div class="input-area">
-                
                 <div class="language-select-group">
                     <label for="language-select" style="font-weight: 600;">Select Input Language:</label>
                     <select id="language-select">
@@ -428,527 +336,173 @@
                     </select>
                 </div>
 
-                <textarea id="text-input" placeholder="Type your message here (e.g., 'I am very happy today!')" rows="4"></textarea>
+                <textarea id="text-input" placeholder="Type your message here (e.g., 'SAD', 'LAUGH', '123')" rows="4"></textarea>
                 
-                <button id="voice-input-btn">🎤 Use Voice Input (Speech Recognition)</button>
+                <button id="voice-input-btn">🎤 Use Voice Input</button>
                 <button id="translate-btn">Translate to Sign Language</button>
             </div>
 
             <div class="output-area">
-                <h3>Sign Language Animation Output</h3>
+                <h3>Sign Language Animation Output (Next-to-Next Display)</h3>
                 
                 <div id="fingerspell-output">
-                    <!-- Dynamic fingerspelling image sequence appears here -->
-                    <p style="color: #6c757d;">(Fingerspelling image sequence will appear here)</p>
+                    <p style="color: #6c757d;">Waiting for input...</p>
                 </div>
                 
                 <div id="animation-display">
-                    <p style="color: #6c757d;">Input text or use voice to start the forward translation simulation.</p>
+                    <p style="color: #6c757d;">Input text or use voice to start translation.</p>
                 </div>
                 <p class="emotion-feedback">Emotion Detected: <span id="emotion-output">Awaiting Input</span></p>
             </div>
-            
-            <hr>
-            
-            <!-- Reverse Translation (Sign -> Text/Voice) -->
-            <section id="reverse-feature">
-                <h3>2. Reverse Translation (Sign $\rightarrow$ Text/Voice)</h3>
-                <p>Demonstration of the system's ability to detect **Hand Gestures** and **Facial Expressions** to convert sign language back into text and voice.</p>
-                
-                <div class="reverse-controls">
-                    <button id="camera-input-btn" class="cta-button" style="background-color: var(--detected-color); margin-right: 0;">🎥 Start Sign Recognition (Capture)</button>
-                    
-                    <div style="text-align: center; width: 100%; margin-top: 10px;">
-                        <h4 style="margin-bottom: 5px;">Simulate Detected Emotion:</h4>
-                        <button class="emotion-control-btn" data-emotion="neutral">😐 Neutral Face</button>
-                        <button class="emotion-control-btn" data-emotion="joyful">😊 Happy Face</button>
-                        <button class="emotion-control-btn" data-emotion="angry">😠 Angry Face</button>
-                    </div>
-                </div>
-
-                <div class="reverse-display-grid">
-                    
-                    <div class="camera-input-box">
-                        <h4 style="margin-top: 0; margin-bottom: 10px;">Live Camera Stream</h4>
-                        <div id="camera-placeholder">Camera Screen Not Active (Click 'Start Capture')</div>
-                        <video id="camera-video" autoplay playsinline></video>
-                        <p id="camera-status" style="margin-top: 10px;">Camera Status: Off</p>
-                    </div>
-
-                    <div id="sign-detection-output-box" class="camera-input-box">
-                        <h4 style="margin-top: 0; margin-bottom: 10px;">Gesture/Sign Recognition Output</h4>
-                        <div id="gesture-status">
-                            <p style="color: #6c757d;">Click 'Start Capture' above to begin processing the sign language input.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </section>
-
-        <!-- About Project Section -->
-        <section id="about" class="container">
-            <h2>📖 About the Project</h2>
-            <p>This project aims to address the communication barriers faced by the deaf and hard-of-hearing communities by providing an intelligent, interactive translation system.</p>
-
-            <h3>Key Features</h3>
-            <ul>
-                <li>**Bidirectional Communication (Two-Way):** Supports both Text/Voice $\rightarrow$ Sign Language and Sign Language $\rightarrow$ Text/Voice conversion.</li>
-                <li>**Emotion-Aware Feedback:** Incorporates an **Emotion Detection System** (via voice tone or facial cues) to enhance the expressiveness and realism of the sign language output.</li>
-                <li>**Output Modalities:** Capable of generating both **2D Image Sequences** and **3D Animation** (Avatar) for the final sign output.</li>
-                <li>**Multilingual Support:** Planned support for primary languages, including **English, Tamil, and Hindi**.</li>
-            </ul>
-
-            <h3>🎯 Primary Objectives</h3>
-            <ul>
-                <li>To develop a **Voice-to-Text Conversion** module using Automatic Speech Recognition (ASR).</li>
-                <li>To perform **Natural Language Processing (NLP)** to translate text into **Sign Language Gloss** (e.g., "I am happy" $\rightarrow$ "I FEEL HAPPY").</li>
-                <li>To map Gloss to a **Sign Language Database** to generate gesture animations.</li>
-            </ul>
         </section>
 
         <!-- System Architecture Section -->
         <section id="architecture" class="container">
-            <h2>⚙️ System Architecture & Working</h2>
-            <p>The system comprises several interlinked modules that handle input processing, translation, emotion detection, animation generation, and user feedback.</p>
-            
-            <!-- IMAGE FLOW CHART ELEMENT - SOURCE IS NOW CORRECTED TO download.jpg -->
+            <h2>⚙️ System Architecture</h2>
             <div class="flowchart-image">
-                <img src="images/download.jpg" alt="System Architecture Flowchart" onerror="this.onerror=null; this.src='https://placehold.co/800x350/e0f7fa/0056b3?text=System+Architecture+Flowchart+Image+Not+Found';" >
-                <p>Fig. 1. Flow Chart: Showing Input $\rightarrow$ NLP $\rightarrow$ Emotion Detection $\rightarrow$ Animation Generator $\rightarrow$ Output Flow</p>
+                <img src="images/download.jpg" alt="System Architecture Flowchart" onerror="this.onerror=null; this.src='https://placehold.co/800x350/e0f7fa/0056b3?text=System+Architecture+Flowchart';" >
+                <p>Fig. 1. Flow Chart: Input $\rightarrow$ NLP $\rightarrow$ Emotion Detection $\rightarrow$ Sign Mapping</p>
             </div>
-
-            <h3>Modular Architecture Components</h3>
-            <ol>
-                <li>
-                    <h4>Input Module</h4>
-                    <p>Handles multiple types of user input: **Text Input**, **Voice Input** (via ASR), and **Visual Input** (via camera) for facial expressions or gestures.</p>
-                </li>
-                <li>
-                    <h4>Natural Language Processing (NLP) Module</h4>
-                    <p>Processes text, performing Tokenization, Parsing, and **Sign Language Grammar Conversion**.</p>
-                </li>
-                <li>
-                    <h4>Emotion Detection Module</h4>
-                    <p>Extracts emotional context from **Text** (Sentiment analysis), **Voice** (tone, pitch), or **Facial Expressions** (using Computer Vision).</p>
-                </li>
-                <li>
-                    <h4>Animation Generator Module</h4>
-                    <p>Uses a **Sign Language Dictionary** and an **Animation Renderer** to create the final sign output, integrating **Emotion** (facial expression/posture).</p>
-                </li>
-                <li>
-                    <h4>Output Module</h4>
-                    <p>Delivers the final visual output as a **Sign Animation Display** with **Emotion-aware Enhancements**.</p>
-                </li>
-            </ol>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2025 Sign Language Animation Project | Developed for Inclusive Technology | Student Project</p>
+        <p>&copy; 2025 Sign Language Animation Project | Student Project</p>
     </footer>
 
-    <!-- JavaScript for Simulation Logic and Web Speech API -->
     <script>
-        const TIMEOUT_DURATION = 7500; // 7.5 seconds for capture
-
         document.addEventListener('DOMContentLoaded', () => {
             const textInput = document.getElementById('text-input');
             const translateBtn = document.getElementById('translate-btn');
             const voiceInputBtn = document.getElementById('voice-input-btn');
             const languageSelect = document.getElementById('language-select');
-            const cameraInputBtn = document.getElementById('camera-input-btn');
-            const cameraVideo = document.getElementById('camera-video');
-            const cameraPlaceholder = document.getElementById('camera-placeholder');
-            const cameraStatus = document.getElementById('camera-status');
-            const gestureStatus = document.getElementById('gesture-status');
-            const emotionControlBtns = document.querySelectorAll('.emotion-control-btn');
             const emotionOutput = document.getElementById('emotion-output');
             const fingerspellOutput = document.getElementById('fingerspell-output');
+            const animationDisplay = document.getElementById('animation-display');
 
-            let currentDetectedEmotion = 'neutral';
-            let detectionInterval = null;
-            let captureTimeout = null;
-            let videoStream = null;
-
-            // --- FUNCTION TO GENERATE PLACEHOLDER IMAGE URLS FOR SIGNS ---
-            const generatePlaceholderSign = (char) => {
-                const text = char === ' ' ? '' : char;
-                // Using placehold.co to simulate the sign images for A-Z and 1-9
-                return `https://placehold.co/80x80/0056b3/ffffff?text=${text}&font=arial&bold=true`;
-            };
-
-            // --- FINGERSPELLING IMAGE PATHS (Using relative paths with fallback) ---
+            // --- 1. SETUP IMAGE PATHS FOR ALL ALPHABETS AND NUMBERS ---
             const ASL_IMAGE_PATHS = {};
             
-            // Populate A-Z (using relative paths, e.g., images/A.png)
+            // Map A-Z to images/A.png, images/B.png, etc.
             for (let i = 65; i <= 90; i++) {
                 const char = String.fromCharCode(i);
                 ASL_IMAGE_PATHS[char] = `images/${char}.png`;
             }
-            // Populate 1-9 (using relative paths, e.g., images/1.png)
-            for (let i = 1; i <= 9; i++) {
+            // Map 0-9 to images/0.png, images/1.png, etc.
+            for (let i = 0; i <= 9; i++) {
                 const char = String(i);
                 ASL_IMAGE_PATHS[char] = `images/${char}.png`;
             }
-            // Add space
-            ASL_IMAGE_PATHS[' '] = generatePlaceholderSign(''); 
-            
-            // NOTE: The fallback logic in simulateFingerspelling will handle non-loading images/X.png etc.
-            // by substituting the working placeholder image.
 
-            // --- 1. Forward Translation (Text/Voice -> Sign) Logic ---
+            // Fallback for preview environment
+            const getFallbackUrl = (char) => `https://placehold.co/85x85/0056b3/ffffff?text=${char}`;
 
+            // --- 2. SIGN DICTIONARY WITH EMOTIONS ---
             const signDictionary = {
-                "happy": { gloss: "FEEL HAPPY", emotion: "Joyful 😄", signs: "SMILE and WIPE-CHEST (joyful motion)", keyword: "HAPPY" },
-                "sad": { gloss: "FEEL SAD", emotion: "Sad 😢", signs: "FIST-DOWNWARD-MOTION, then LOWERED-BROW (slow motion)", keyword: "SAD" },
-                "angry": { gloss: "FEEL ANGRY", emotion: "Angry 😠", signs: "CLAW-HAND-TO-FACE, then TENSE-BODY (fast and abrupt motion)", keyword: "ANGRY" },
-                "frustrated": { gloss: "FEEL FRUSTRATED", emotion: "Angry 😠", signs: "KNUCKLES-TO-CHIN, fast, abrupt motion", keyword: "FRUSTRATED" },
-                "hello": { gloss: "GREET", emotion: "Neutral 👤", signs: "OPEN-HAND-WAVE (standard speed)", keyword: "HELLO" },
-                "today": { gloss: "NOW DAY", emotion: "Neutral 👤", signs: "TWO-FINGERS-POINTING-DOWN-AND-ARCING", keyword: "TODAY" },
-                "default": { gloss: "MESSAGE UNKNOWN", emotion: "Neutral ❓", signs: "SHOULDER-SHRUG (Standard Speed)", keyword: "MESSAGE" }
+                "happy": { emotion: "Joyful 😄", keyword: "HAPPY" },
+                "laugh": { emotion: "Joyful 😄", keyword: "LAUGH" },
+                "laughing": { emotion: "Joyful 😄", keyword: "LAUGHING" },
+                "sad": { emotion: "Sad 😢", keyword: "SAD" },
+                "angry": { emotion: "Angry 😠", keyword: "ANGRY" },
+                "hello": { emotion: "Neutral 👤", keyword: "HELLO" },
+                "today": { emotion: "Neutral 👤", keyword: "TODAY" }
             };
 
-            const getSimulatedSign = (text) => {
-                const lowerText = text.toLowerCase();
-                if (lowerText.includes("happy") || lowerText.includes("joy")) return signDictionary.happy;
-                if (lowerText.includes("sad") || lowerText.includes("down") || lowerText.includes("bad")) return signDictionary.sad;
-                if (lowerText.includes("angry") || lowerText.includes("mad")) return signDictionary.angry;
-                if (lowerText.includes("frustrated")) return signDictionary.frustrated;
-                if (lowerText.includes("hello") || lowerText.includes("hi")) return signDictionary.hello;
-                if (lowerText.includes("today") || lowerText.includes("now")) return signDictionary.today;
-                return signDictionary.default;
-            };
-
-            const updateDisplay = (message, className = '') => {
-                const p = document.createElement('p');
-                p.textContent = message;
-                p.className = className;
-                document.getElementById('animation-display').appendChild(p);
-                document.getElementById('animation-display').scrollTop = document.getElementById('animation-display').scrollHeight; 
-            };
-            
             const simulateFingerspelling = (word) => {
-                fingerspellOutput.innerHTML = '<p style="color: #6c757d; width: 100%;">Rendering sequence...</p>';
-                const words = word.toUpperCase().split(' ');
-                let delay = 0;
-                
-                // Clear and re-populate with placeholder for a clean start
                 fingerspellOutput.innerHTML = '';
+                const words = word.toUpperCase().split(/\s+/);
+                let globalDelay = 0;
 
-                words.forEach((w, wordIndex) => {
-                    const letters = w.split('');
-                    
-                    // Container for the current word signs
+                words.forEach((w) => {
                     const wordContainer = document.createElement('div');
-                    wordContainer.style.display = 'flex';
-                    wordContainer.style.gap = '5px';
-                    wordContainer.style.margin = '5px';
-                    // Ensure horizontal display for letters within a word
-                    wordContainer.style.flexDirection = 'row'; 
+                    wordContainer.className = 'word-container';
                     fingerspellOutput.appendChild(wordContainer);
 
+                    const letters = w.split('');
                     letters.forEach((letter) => {
                         const signPath = ASL_IMAGE_PATHS[letter];
-                        if (!signPath) return; // Skip unknown characters
-                        
+                        if (!signPath) return;
+
                         setTimeout(() => {
-                            // Create image element
                             const img = document.createElement('img');
                             img.src = signPath;
-                            img.alt = `Sign for ${letter}`;
-                            img.classList.add('animated-sign');
+                            img.alt = letter;
+                            img.className = 'animated-sign';
                             
-                            // Universal onerror handler for all fingerspelling images
+                            // Fallback if images/ folder is missing locally
                             img.onerror = function() {
-                                this.onerror = null; // Prevent infinite loop
-                                // Fallback to the working placeholder if the image path is broken
-                                this.src = generatePlaceholderSign(letter);
-                                console.warn(`Could not load images/${letter}.png. Using placeholder instead.`);
+                                this.onerror = null;
+                                this.src = getFallbackUrl(letter);
                             };
                             
-                            // Append to the current word container
                             wordContainer.appendChild(img);
-
-                        }, delay);
-                        delay += 500; // 500ms delay per sign
+                        }, globalDelay);
+                        globalDelay += 400; // Delay per letter
                     });
-                    
-                    // Add delay for the space between words
-                    if (wordIndex < words.length - 1) {
-                        delay += 500; 
-                    }
+                    globalDelay += 200; // Gap between words
                 });
-                return delay;
+                return globalDelay;
             };
 
-            const translateText = async (inputText) => {
-                if (!inputText || inputText.trim() === "") {
-                    document.getElementById('animation-display').innerHTML = '<p style="color:red;">Please enter text or use voice input.</p>';
-                    emotionOutput.textContent = 'Awaiting Input';
-                    return;
-                }
-                
-                const trimmedInput = inputText.trim().toLowerCase();
-                const singleLetter = trimmedInput.toUpperCase();
-                
-                // --- Single Letter Fingerspelling Check ---
-                if (singleLetter.length === 1 && ASL_IMAGE_PATHS[singleLetter] && singleLetter !== ' ') {
-                    fingerspellOutput.innerHTML = '';
-                    const img = document.createElement('img');
-                    const signPath = ASL_IMAGE_PATHS[singleLetter];
-                    
-                    img.src = signPath;
-                    img.alt = `Sign for ${singleLetter}`;
-                    img.classList.add('animated-sign');
-                    
-                    // Add onerror handler for the specific single image check
-                    img.onerror = function() {
-                        this.onerror = null;
-                        this.src = generatePlaceholderSign(singleLetter);
-                        console.warn(`Could not load images/${singleLetter}.png. Using placeholder instead.`);
-                    };
-
-                    fingerspellOutput.appendChild(img);
-                    
-                    document.getElementById('animation-display').innerHTML = `<p style="font-size: 1.2rem; font-weight: bold; color: var(--secondary-color);">✅ Single Sign Output: ${singleLetter}</p>`;
-                    emotionOutput.textContent = 'Neutral 👤';
-                    return;
-                }
-                
-                // --- Full Sentence Simulation ---
+            const startTranslation = async () => {
+                const rawInput = textInput.value.trim().toLowerCase();
+                if (!rawInput) return;
 
                 translateBtn.disabled = true;
                 voiceInputBtn.disabled = true;
-                
-                fingerspellOutput.innerHTML = '<p style="color: var(--primary-color); width: 100%;">Starting Sign Sequence...</p>';
-                document.getElementById('animation-display').innerHTML = '<p style="font-weight: bold; color: var(--primary-color);">Starting Translation...</p>';
-                emotionOutput.textContent = 'Processing...';
+                fingerspellOutput.innerHTML = '<p>Processing sequence...</p>';
+                animationDisplay.innerHTML = '<p class="simulation-step">Detecting Emotion & Mapping Signs...</p>';
 
-                const result = getSimulatedSign(inputText);
-                
-                let textToSpell;
-                
-                // Custom logic: If the input matches a dictionary key exactly (e.g., "sad"), 
-                // use the original input text for fingerspelling, otherwise use the found keyword.
-                if (signDictionary[trimmedInput]) {
-                     textToSpell = trimmedInput;
-                } else {
-                     textToSpell = result.keyword;
+                // Determine Emotion and Keyword
+                let entry = null;
+                const inputWords = rawInput.split(/\s+/);
+                for (let w of inputWords) {
+                    if (signDictionary[w]) {
+                        entry = signDictionary[w];
+                        break;
+                    }
                 }
 
-                document.getElementById('animation-display').innerHTML = '';
-                
-                // 1. Input Module Acknowledgment
-                updateDisplay(`1. Input Received: "${inputText.substring(0, 40)}..."`, 'simulation-step');
-
-                // 2. Emotion Detection Module Simulation (250ms)
-                await new Promise(resolve => setTimeout(resolve, 250));
-                updateDisplay(`2. Emotion Detection (from Text/Voice): ${result.emotion}`, 'simulation-step');
-                emotionOutput.textContent = result.emotion;
-
-                // 3. NLP Module Simulation (500ms)
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                let glossOutput = result.gloss;
-                let step4Message = `4. Animation Mapping: Generating image sequence for: ${textToSpell.toUpperCase()}...`;
-
-                if (result.keyword === 'MESSAGE') {
-                    // For unknown messages, simulate NLP trying to break it down and falling back to fingerspelling
-                    glossOutput = `(Fingerspelling: ${inputText.toUpperCase().substring(0, 15)}...)`;
-                    step4Message = `3. NLP & Gloss Conversion: No direct sign found. Falling back to Fingerspelling.`;
+                if (!entry) {
+                    entry = { emotion: "Neutral 👤", keyword: rawInput.toUpperCase() };
                 }
 
-                updateDisplay(`3. NLP & Gloss Conversion: → Gloss: "${glossOutput}"`, 'simulation-step');
-                
-                // 4. Animation Mapping
-                await new Promise(resolve => setTimeout(resolve, 750));
-                updateDisplay(step4Message, 'simulation-step');
-                
-                // 5. Simulate Fingerspelling Animation (Visual Output)
-                // Use the precise input if it was a dictionary word, otherwise use the detected keyword
-                const animationDuration = simulateFingerspelling(textToSpell);
-                await new Promise(resolve => setTimeout(resolve, animationDuration + 500));
+                emotionOutput.textContent = entry.emotion;
 
-                // 6. Output Module Final Render
-                const finalMessage = `<p style="font-size: 1.2rem; font-weight: bold; color: var(--secondary-color); margin-top: 15px;">✅ Translation Complete (2D/3D Animation Ready)!</p>
-                                      <p>Sign Language Output based on: **${textToSpell.toUpperCase()}**</p>
-                                      <p style="font-size: 0.9rem; color: #6c757d;">(Final sign sequence completed in ${animationDuration / 1000} seconds. Emotion: ${result.emotion.split(' ')[0]})</p>`;
+                await new Promise(r => setTimeout(r, 600));
+                animationDisplay.innerHTML += `<p class="simulation-step">Keyword: ${entry.keyword}</p>`;
+                
+                const totalTime = simulateFingerspelling(entry.keyword);
 
-                document.getElementById('animation-display').innerHTML += finalMessage; 
-                translateBtn.disabled = false;
-                voiceInputBtn.disabled = false;
+                setTimeout(() => {
+                    animationDisplay.innerHTML += '<p style="color:var(--secondary-color); font-weight:bold; margin-top:10px;">✅ Sequence Complete</p>';
+                    translateBtn.disabled = false;
+                    voiceInputBtn.disabled = false;
+                }, totalTime);
             };
 
-            translateBtn.addEventListener('click', () => {
-                translateText(textInput.value);
-            });
+            translateBtn.addEventListener('click', startTranslation);
 
-            // --- Voice Input Logic Setup ---
+            // --- Voice Input Logic ---
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            let recognition = null;
-
             if (SpeechRecognition) {
-                recognition = new SpeechRecognition();
-                recognition.continuous = false;
-                recognition.interimResults = false;
-                recognition.maxAlternatives = 1;
-
+                const recognition = new SpeechRecognition();
                 recognition.onstart = () => {
                     voiceInputBtn.classList.add('listening');
-                    voiceInputBtn.textContent = '🔴 Listening... Speak Now!';
-                    translateBtn.disabled = true;
+                    voiceInputBtn.textContent = 'Listening...';
                 };
-
                 recognition.onend = () => {
                     voiceInputBtn.classList.remove('listening');
-                    voiceInputBtn.textContent = '🎤 Use Voice Input (Speech Recognition)';
-                    translateBtn.disabled = false;
+                    voiceInputBtn.textContent = '🎤 Use Voice Input';
                 };
-
-                recognition.onresult = (event) => {
-                    const speechResult = event.results[0][0].transcript;
-                    textInput.value = speechResult;
-                    document.getElementById('animation-display').innerHTML = `<p style="color:var(--secondary-color); font-weight: 500;">✅ Voice Input Transcribed: "${speechResult.substring(0, 30)}..."</p>`;
-                    translateText(speechResult); // Automatically trigger translation after result
+                recognition.onresult = (e) => {
+                    textInput.value = e.results[0][0].transcript;
+                    startTranslation();
                 };
-
-                recognition.onerror = (event) => {
-                    voiceInputBtn.classList.remove('listening');
-                    voiceInputBtn.textContent = '🎤 Use Voice Input (Speech Recognition)';
-                    document.getElementById('animation-display').innerHTML = `<p style="color: red;">Speech Recognition Error: ${event.error}. Please ensure microphone access is granted.</p>`;
-                    translateBtn.disabled = false;
-                };
-
-                languageSelect.addEventListener('change', () => {
-                    recognition.lang = languageSelect.value;
-                });
-                
-                recognition.lang = languageSelect.value;
-
-
-                voiceInputBtn.addEventListener('click', () => {
-                    try {
-                        textInput.value = ''; 
-                        recognition.start();
-                        document.getElementById('animation-display').innerHTML = `<p style="color:#007bff; font-weight: bold;">🔊 Waiting for speech in ${languageSelect.options[languageSelect.selectedIndex].text}...</p>`;
-                    } catch (e) {
-                        if (e.name !== 'InvalidStateError') {
-                            document.getElementById('animation-display').innerHTML = `<p style="color: red;">Microphone Error: ${e.message}</p>`;
-                        }
-                    }
-                });
-
+                voiceInputBtn.onclick = () => recognition.start();
             } else {
-                voiceInputBtn.disabled = true;
-                voiceInputBtn.textContent = 'Voice Not Supported (Browser API Missing)';
-                document.getElementById('animation-display').innerHTML = '<p style="color: red; margin-top: 10px;">Warning: Web Speech API not supported. Only text input works.</p>';
+                voiceInputBtn.style.display = 'none';
             }
-            
-            // --- 2. Reverse Translation (Sign -> Text) Logic ---
-
-            // A. Emotion Control
-            emotionControlBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    currentDetectedEmotion = btn.getAttribute('data-emotion');
-                    emotionControlBtns.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                });
-            });
-            // Initialize default emotion
-            document.querySelector('.emotion-control-btn[data-emotion="neutral"]').click(); 
-
-            // B. Camera and Detection Logic
-            const stopCameraAndDetection = (reason = 'Off') => {
-                if (videoStream) {
-                    videoStream.getTracks().forEach(track => track.stop());
-                    videoStream = null;
-                }
-                if (detectionInterval) clearInterval(detectionInterval);
-                if (captureTimeout) clearTimeout(captureTimeout);
-
-                cameraVideo.style.display = 'none';
-                cameraPlaceholder.style.display = 'flex';
-                cameraStatus.textContent = `Camera Status: ${reason}`;
-                cameraStatus.style.color = 'var(--listening-color)';
-                cameraInputBtn.textContent = '🎥 Start Sign Recognition (Capture)';
-                cameraInputBtn.disabled = false;
-                
-                if (reason === 'Off') {
-                    gestureStatus.innerHTML = '<p style="color: #6c757d;">Click \'Start Capture\' above to begin processing the sign language input.</p>';
-                }
-            }
-
-            cameraInputBtn.addEventListener('click', () => {
-                if (videoStream || detectionInterval) {
-                    stopCameraAndDetection();
-                    return;
-                }
-
-                // UI Activation (Simulated Success)
-                cameraVideo.style.display = 'block';
-                cameraPlaceholder.style.display = 'none';
-                cameraStatus.textContent = 'Camera Status: Active (Starting Stream...)';
-                cameraStatus.style.color = 'var(--secondary-color)';
-                cameraInputBtn.textContent = '⏹️ Stop Capture';
-                
-                // Attempt to start real camera stream
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(stream => {
-                        videoStream = stream;
-                        cameraVideo.srcObject = stream;
-                        cameraStatus.textContent = 'Camera Status: Live Stream Active';
-                    })
-                    .catch(err => {
-                        // In an iFrame, this often fails due to security restrictions.
-                        cameraStatus.textContent = 'Camera Status: Active (Stream Blocked, Using Simulation)';
-                        console.error("Camera access denied or blocked in iFrame:", err);
-                    });
-
-                startDetectionSimulation();
-            });
-
-            const startDetectionSimulation = () => {
-                const detectedSigns = [
-                    { sign: "HELLO", text: "Hello / Namaste / Vanakkam" },
-                    { sign: "GOOD", text: "Good / Acchha / Nallathu" },
-                    { sign: "THANKS", text: "Thank you / Shukriya / Nandri" },
-                ];
-                let signIndex = 0;
-                let countdownSeconds = TIMEOUT_DURATION / 1000;
-
-                
-                if (detectionInterval) clearInterval(detectionInterval);
-                if (captureTimeout) clearTimeout(captureTimeout);
-
-                const finalCaptureText = `<p class="final-text" style="color: var(--secondary-color);">✅ **Capture Complete!**</p>
-                                         <p class="final-text">**Interpreted Sentence:** "Thank you. I feel ${currentDetectedEmotion}."</p>
-                                         <p style="font-size: 0.9rem; color: #6c757d;">(Gloss: THANK YOU, Expression: ${currentDetectedEmotion.toUpperCase()})</p>`;
-
-                captureTimeout = setTimeout(() => {
-                    stopCameraAndDetection('Capture Complete');
-                    gestureStatus.innerHTML = finalCaptureText;
-                }, TIMEOUT_DURATION);
-                
-                cameraInputBtn.disabled = false; // Allow stopping capture manually
-                cameraVideo.style.borderColor = 'var(--listening-color)';
-
-
-                detectionInterval = setInterval(() => {
-                    countdownSeconds = Math.max(0, countdownSeconds - 1);
-                    cameraStatus.textContent = `Camera Status: Capturing... (${countdownSeconds}s remaining)`;
-                    
-                    const currentSign = detectedSigns[signIndex];
-                    
-                    gestureStatus.innerHTML = `
-                        <p>1. **Facial Expression Detected:** <span style="color: ${currentDetectedEmotion === 'joyful' ? '#4CAF50' : currentDetectedEmotion === 'angry' ? '#F44336' : '#9E9E9E'};">${currentDetectedEmotion.toUpperCase()}</span></p>
-                        <p>2. **Gesture Frame Detected:** <span style="color: var(--detected-color);">${currentSign.sign}</span></p>
-                        <p>3. **Simulated Text Output:** *"${currentSign.text.substring(0, 20)}..."*</p>
-                    `;
-                    
-                    signIndex = (signIndex + 1) % detectedSigns.length;
-
-                }, 1000); 
-            };
         });
     </script>
 </body>
