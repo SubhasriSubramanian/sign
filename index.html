@@ -1,541 +1,228 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice to Sign Language Animation System</title>
-    <style>
-        /* --- Design and Interface Styling --- */
-        :root {
-            --primary-color: #0056b3; /* Darker blue for emphasis */
-            --secondary-color: #28a745; /* Green for CTAs */
-            --background-color: #eef2f7; /* Light grey/blue background */
-            --card-background: #ffffff;
-            --highlight-color: #ffc107; /* Yellow/Orange for buttons */
-            --listening-color: #dc3545; /* Red for listening state */
-            --detected-color: #00bcd4; /* Cyan for successful detection */
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--background-color);
-            color: #333;
-            line-height: 1.6;
-            transition: background-color 0.3s;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice & Camera to Sign Language System</title>
 
-        header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1.5rem 0;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            border-bottom-left-radius: 10px;
-            border-bottom-right-radius: 10px;
-        }
+<style>
+:root {
+  --primary:#0056b3;
+  --secondary:#28a745;
+  --bg:#eef2f7;
+}
 
-        header h1 {
-            margin: 0;
-            font-size: 2rem;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-        }
+body {
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  margin: 0;
+}
 
-        nav a {
-            color: white;
-            margin: 0 20px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s, border-bottom 0.3s;
-            padding-bottom: 5px;
-        }
+header {
+  background: var(--primary);
+  color: #fff;
+  padding: 15px;
+  text-align: center;
+}
 
-        nav a:hover {
-            color: var(--highlight-color);
-            border-bottom: 2px solid var(--highlight-color);
-        }
+main {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
 
-        main {
-            padding: 20px;
-            max-width: 1200px;
-            margin: 20px auto;
-        }
+.container {
+  background: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+}
 
-        .container {
-            background-color: var(--card-background);
-            padding: 40px;
-            margin-bottom: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            scroll-margin-top: 100px; 
-            border: 1px solid #ddd;
-        }
+button {
+  padding: 10px 15px;
+  margin: 5px;
+  cursor: pointer;
+  border-radius: 6px;
+  border: none;
+  background: #ffc107;
+  font-weight: bold;
+}
 
-        h2, h3, h4 {
-            color: var(--primary-color);
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 10px;
-            margin-top: 0;
-        }
+textarea {
+  width: 100%;
+  padding: 12px;
+}
 
-        #hero {
-            text-align: center;
-            padding: 60px 20px;
-            background: linear-gradient(135deg, #e0f7fa 0%, #b3e5fc 100%);
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        #hero h2 {
-            font-size: 2.5rem;
-            color: #004d40;
-            border-bottom: none;
-        }
+#fingerspell-output img,
+#camera-sign-output img {
+  width: 70px;
+  margin: 5px;
+  border: 2px solid #0056b3;
+  border-radius: 6px;
+}
 
-        .cta-button {
-            display: inline-block;
-            background-color: var(--secondary-color);
-            color: white;
-            padding: 12px 25px;
-            text-decoration: none;
-            border-radius: 8px;
-            margin-top: 25px;
-            font-weight: bold;
-            transition: background-color 0.3s, transform 0.2s;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-        }
-
-        .cta-button:hover {
-            background-color: #218838;
-            transform: translateY(-2px);
-        }
-
-        .input-area, .output-area {
-            margin: 20px 0;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            background-color: #f9f9f9;
-        }
-
-        .language-select-group {
-            padding: 10px 15px;
-            border: 1px solid #c0d8ff;
-            background-color: #e6f0ff;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        #text-input {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-
-        #text-input:focus {
-            border-color: var(--primary-color);
-            outline: none;
-        }
-
-        #translate-btn, #voice-input-btn {
-            background-color: var(--highlight-color);
-            color: #333;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-right: 15px;
-            font-weight: 600;
-            transition: background-color 0.3s, transform 0.2s;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        #voice-input-btn.listening {
-            background-color: var(--listening-color);
-            color: white;
-        }
-
-        #translate-btn:hover:not(:disabled), #voice-input-btn:hover:not(:disabled) {
-            background-color: #e0a800;
-            transform: translateY(-1px);
-        }
-        
-        #translate-btn:disabled, #voice-input-btn:disabled:not(.listening), .emotion-control-btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
-
-        /* --- Fingerspelling Row Display --- */
-        #fingerspell-output {
-            min-height: 120px;
-            margin-top: 15px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            padding: 20px;
-            background: #fff;
-            border: 2px dashed #ccc;
-            border-radius: 10px;
-            overflow-x: auto;
-        }
-
-        .word-container {
-            display: flex;
-            flex-direction: row;
-            gap: 5px;
-            margin: 5px;
-            padding: 5px;
-            border-radius: 8px;
-            background: #f0f7ff;
-        }
-
-        #fingerspell-output img {
-            width: 85px;
-            height: 85px;
-            object-fit: contain;
-            border: 2px solid var(--primary-color);
-            border-radius: 8px;
-            background-color: #fff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .animated-sign {
-            animation: pulse 0.5s ease-in-out;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.9); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 1.0; box-shadow: 0 0 10px var(--highlight-color); }
-            100% { transform: scale(1.0); opacity: 1.0; }
-        }
-
-
-        /* --- Forward Output Display --- */
-        #animation-display {
-            min-height: 200px;
-            background-color: #e8f5e9; /* Light green background for output */
-            border: 3px solid var(--secondary-color);
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-top: 15px;
-            padding: 10px;
-            color: #004d40;
-            font-weight: 500;
-            text-align: center;
-            overflow-y: auto; 
-        }
-
-        .emotion-feedback {
-            text-align: center;
-            margin-top: 15px;
-            font-weight: bold;
-            color: var(--primary-color);
-            padding: 5px 10px;
-            background-color: #f0f8ff;
-            border-radius: 5px;
-        }
-        
-        .simulation-step {
-            color: #007bff;
-            margin-top: 5px;
-            font-style: italic;
-            border-bottom: 1px dashed #c0d8ff;
-            padding-bottom: 3px;
-            width: 90%;
-            max-width: 450px;
-        }
-        
-        .simulation-step:last-of-type {
-            border-bottom: none;
-        }
-
-        /* --- Other Sections --- */
-        .flowchart-image {
-            text-align: center;
-            margin: 30px 0;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #fdfdfd;
-        }
-        
-        .flowchart-image img {
-             max-width: 100%; 
-             height: auto; 
-             margin-bottom: 10px;
-             border-radius: 4px;
-             border: 1px solid #ccc;
-        }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            background-color: #343a40;
-            color: white;
-            margin-top: 30px;
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
-        }
-    </style>
+video {
+  width: 320px;
+  height: 240px;
+  background: black;
+  border: 2px solid #333;
+  border-radius: 8px;
+  display: block;
+}
+</style>
 </head>
+
 <body>
-    <header>
-        <h1>🗣️ Voice to Sign Language Image Animation System</h1>
-        <nav>
-            <a href="#home">Home</a>
-            <a href="#about">About Project</a>
-            <a href="#architecture">System Working</a>
-            <a href="#demo">Try Demo</a>
-        </nav>
-    </header>
 
-    <main>
-        <!-- Home Section -->
-        <section id="home">
-            <div id="hero">
-                <h2>Bridging Communication Gaps with Intelligent Translation</h2>
-                <p>We propose a Voice to Sign Language Image Animation Generation System that facilitates inclusive communication by converting text or voice inputs into animated sign language representations.</p>
-                <a href="#demo" class="cta-button">Start Communication</a>
-            </div>
-        </section>
+<header>
+<h1>🗣️ Voice & Camera to Sign Language System</h1>
+</header>
 
-        <!-- Demo Section -->
-        <section id="demo" class="container">
-            <h2>Live Demonstration (Prototype)</h2>
-            
-            <h3>1. Forward Translation (Text/Voice $\rightarrow$ Sign)</h3>
-            <p>Input text or speak a message. The system detects the emotion and generates the sign sequence.</p>
+<main>
 
-            <div class="input-area">
-                <div class="language-select-group">
-                    <label for="language-select" style="font-weight: 600;">Select Input Language:</label>
-                    <select id="language-select">
-                        <option value="en-US">English (US)</option>
-                        <option value="ta-IN">Tamil (India)</option>
-                        <option value="hi-IN">Hindi (India)</option>
-                    </select>
-                </div>
+<!-- ================= VOICE → SIGN ================= -->
+<section class="container">
+<h2>1. Voice / Text → Sign Language</h2>
 
-                <textarea id="text-input" placeholder="Type your message here (e.g., 'SAD', 'LAUGH', '123')" rows="4"></textarea>
-                
-                <button id="voice-input-btn">🎤 Use Voice Input</button>
-                <button id="translate-btn">Translate to Sign Language</button>
-            </div>
+<textarea id="text-input" placeholder="Type text like HAPPY, SAD, HELLO"></textarea><br><br>
 
-            <div class="output-area">
-                <h3>Sign Language Animation Output (Next-to-Next Display)</h3>
-                
-                <div id="fingerspell-output">
-                    <p style="color: #6c757d;">Waiting for input...</p>
-                </div>
-                
-                <div id="animation-display">
-                    <p style="color: #6c757d;">Input text or use voice to start translation.</p>
-                </div>
-                <p class="emotion-feedback">Emotion Detected: <span id="emotion-output">Awaiting Input</span></p>
-            </div>
-        </section>
+<button id="voice-input-btn">🎤 Voice Input</button>
+<button id="translate-btn">Translate</button>
 
-        <!-- System Architecture Section -->
-        <section id="architecture" class="container">
-            <h2>⚙️ System Architecture</h2>
-            <div class="flowchart-image">
-                <img src="images/download.jpg" alt="System Architecture Flowchart" onerror="this.onerror=null; this.src='https://placehold.co/800x350/e0f7fa/0056b3?text=System+Architecture+Flowchart';" >
-                <p>Fig. 1. Flow Chart: Input $\rightarrow$ NLP $\rightarrow$ Emotion Detection $\rightarrow$ Sign Mapping</p>
-            </div>
-        </section>
-    </main>
+<p><strong>Emotion:</strong> <span id="emotion-output">---</span></p>
 
-    <footer>
-        <p>&copy; 2025 Sign Language Animation Project | Student Project</p>
-    </footer>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const textInput = document.getElementById('text-input');
-            const translateBtn = document.getElementById('translate-btn');
-            const voiceInputBtn = document.getElementById('voice-input-btn');
-            const languageSelect = document.getElementById('language-select');
-            const emotionOutput = document.getElementById('emotion-output');
-            const fingerspellOutput = document.getElementById('fingerspell-output');
-            const animationDisplay = document.getElementById('animation-display');
-
-            // --- 1. SETUP IMAGE PATHS FOR ALL ALPHABETS AND NUMBERS ---
-            const ASL_IMAGE_PATHS = {};
-            
-            // Map A-Z to images/A.png, images/B.png, etc.
-            for (let i = 65; i <= 90; i++) {
-                const char = String.fromCharCode(i);
-                ASL_IMAGE_PATHS[char] = `images/${char}.png`;
-            }
-            // Map 0-9 to images/0.png, images/1.png, etc.
-            for (let i = 0; i <= 9; i++) {
-                const char = String(i);
-                ASL_IMAGE_PATHS[char] = `images/${char}.png`;
-            }
-
-            // Fallback for preview environment
-            const getFallbackUrl = (char) => `https://placehold.co/85x85/0056b3/ffffff?text=${char}`;
-
-            // --- 2. SIGN DICTIONARY WITH EMOTIONS ---
-            const signDictionary = {
-                "happy": { emotion: "Joyful 😄", keyword: "HAPPY" },
-                "laugh": { emotion: "Joyful 😄", keyword: "LAUGH" },
-                "laughing": { emotion: "Joyful 😄", keyword: "LAUGHING" },
-                "sad": { emotion: "Sad 😢", keyword: "SAD" },
-                "angry": { emotion: "Angry 😠", keyword: "ANGRY" },
-                "hello": { emotion: "Neutral 👤", keyword: "HELLO" },
-                "today": { emotion: "Neutral 👤", keyword: "TODAY" }
-            };
-
-            const simulateFingerspelling = (word) => {
-                fingerspellOutput.innerHTML = '';
-                const words = word.toUpperCase().split(/\s+/);
-                let globalDelay = 0;
-
-                words.forEach((w) => {
-                    const wordContainer = document.createElement('div');
-                    wordContainer.className = 'word-container';
-                    fingerspellOutput.appendChild(wordContainer);
-
-                    const letters = w.split('');
-                    letters.forEach((letter) => {
-                        const signPath = ASL_IMAGE_PATHS[letter];
-                        if (!signPath) return;
-
-                        setTimeout(() => {
-                            const img = document.createElement('img');
-                            img.src = signPath;
-                            img.alt = letter;
-                            img.className = 'animated-sign';
-                            
-                            // Fallback if images/ folder is missing locally
-                            img.onerror = function() {
-                                this.onerror = null;
-                                this.src = getFallbackUrl(letter);
-                            };
-                            
-                            wordContainer.appendChild(img);
-                        }, globalDelay);
-                        globalDelay += 400; // Delay per letter
-                    });
-                    globalDelay += 200; // Gap between words
-                });
-                return globalDelay;
-            };
-
-            const startTranslation = async () => {
-                const rawInput = textInput.value.trim().toLowerCase();
-                if (!rawInput) return;
-
-                translateBtn.disabled = true;
-                voiceInputBtn.disabled = true;
-                fingerspellOutput.innerHTML = '<p>Processing sequence...</p>';
-                animationDisplay.innerHTML = '<p class="simulation-step">Detecting Emotion & Mapping Signs...</p>';
-
-                // Determine Emotion and Keyword
-                let entry = null;
-                const inputWords = rawInput.split(/\s+/);
-                for (let w of inputWords) {
-                    if (signDictionary[w]) {
-                        entry = signDictionary[w];
-                        break;
-                    }
-                }
-
-                if (!entry) {
-                    entry = { emotion: "Neutral 👤", keyword: rawInput.toUpperCase() };
-                }
-
-                emotionOutput.textContent = entry.emotion;
-
-                await new Promise(r => setTimeout(r, 600));
-                animationDisplay.innerHTML += `<p class="simulation-step">Keyword: ${entry.keyword}</p>`;
-                
-                const totalTime = simulateFingerspelling(entry.keyword);
-
-                setTimeout(() => {
-                    animationDisplay.innerHTML += '<p style="color:var(--secondary-color); font-weight:bold; margin-top:10px;">✅ Sequence Complete</p>';
-                    translateBtn.disabled = false;
-                    voiceInputBtn.disabled = false;
-                }, totalTime);
-            };
-
-            translateBtn.addEventListener('click', startTranslation);
-
-            // --- Voice Input Logic ---
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (SpeechRecognition) {
-                const recognition = new SpeechRecognition();
-                recognition.onstart = () => {
-                    voiceInputBtn.classList.add('listening');
-                    voiceInputBtn.textContent = 'Listening...';
-                };
-                recognition.onend = () => {
-                    voiceInputBtn.classList.remove('listening');
-                    voiceInputBtn.textContent = '🎤 Use Voice Input';
-                };
-                recognition.onresult = (e) => {
-                    textInput.value = e.results[0][0].transcript;
-                    startTranslation();
-                };
-                voiceInputBtn.onclick = () => recognition.start();
-            } else {
-                voiceInputBtn.style.display = 'none';
-            }
-        });
-    </script>
-    <hr style="margin:40px 0;">
-
-<section id="camera" class="container">
-  <h2>📷 Camera-Based Emotion & Sign Recognition</h2>
-  <p>
-    This module enables reverse communication.  
-    When a deaf person shows an emotion or sign in front of the camera,  
-    the system detects and displays the corresponding symbol or text.
-  </p>
-
-  <div class="input-area">
-    <video id="camera-feed" width="320" height="240" autoplay muted></video>
-    <br><br>
-    <button id="start-camera-btn">📷 Start Camera</button>
-    <button id="scan-camera-btn">🔍 Analyze Camera Frame</button>
-  </div>
-
-  <div class="output-area">
-    <p><strong>Camera Detected Emotion:</strong>
-      <span id="camera-emotion-output">None</span>
-    </p>
-
-    <p><strong>Camera Detected Text:</strong>
-      <span id="camera-text-output">None</span>
-    </p>
-
-    <div id="camera-sign-output">
-      <p style="color:#6c757d;">Camera output will appear here</p>
-    </div>
-  </div>
+<div id="fingerspell-output"></div>
 </section>
+
+<hr>
+
+<!-- ================= CAMERA MODULE ================= -->
+<section class="container">
+<h2>2. Camera-Based Emotion & Sign Recognition</h2>
+<p>
+When a deaf person shows emotion or sign in front of the camera,
+the system displays the corresponding symbol or text.
+</p>
+
+<video id="camera-feed" autoplay muted playsinline></video><br>
+
+<button id="start-camera-btn">📷 Start Camera</button>
+<button id="scan-camera-btn">🔍 Analyze Camera Frame</button>
+
+<p><strong>Camera Detected Emotion:</strong>
+<span id="camera-emotion-output">---</span></p>
+
+<p><strong>Camera Detected Text:</strong>
+<span id="camera-text-output">---</span></p>
+
+<div id="camera-sign-output"></div>
+</section>
+
+</main>
+
+<script>
+/* ================= COMMON SIGN DATA ================= */
+
+const ASL_IMAGE_PATHS = {};
+for (let i = 65; i <= 90; i++) {
+  ASL_IMAGE_PATHS[String.fromCharCode(i)] = `images/${String.fromCharCode(i)}.png`;
+}
+const fallback = l => `https://placehold.co/70x70/0056b3/ffffff?text=${l}`;
+
+/* ================= VOICE MODULE ================= */
+
+const textInput = document.getElementById("text-input");
+const translateBtn = document.getElementById("translate-btn");
+const voiceBtn = document.getElementById("voice-input-btn");
+const emotionOutput = document.getElementById("emotion-output");
+const output = document.getElementById("fingerspell-output");
+
+const signDict = {
+  happy: "Joyful 😄",
+  sad: "Sad 😢",
+  angry: "Angry 😠",
+  hello: "Neutral 👤"
+};
+
+translateBtn.onclick = () => {
+  const text = textInput.value.trim().toLowerCase();
+  if (!text) return;
+
+  output.innerHTML = "";
+  emotionOutput.textContent = signDict[text] || "Neutral 👤";
+
+  text.toUpperCase().split("").forEach(l => {
+    if (!ASL_IMAGE_PATHS[l]) return;
+    const img = document.createElement("img");
+    img.src = ASL_IMAGE_PATHS[l];
+    img.onerror = () => img.src = fallback(l);
+    output.appendChild(img);
+  });
+};
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+  const rec = new SpeechRecognition();
+  rec.onresult = e => {
+    textInput.value = e.results[0][0].transcript;
+    translateBtn.click();
+  };
+  voiceBtn.onclick = () => rec.start();
+}
+
+/* ================= CAMERA MODULE ================= */
+
+const cameraFeed = document.getElementById("camera-feed");
+const startCam = document.getElementById("start-camera-btn");
+const scanCam = document.getElementById("scan-camera-btn");
+const camEmotion = document.getElementById("camera-emotion-output");
+const camText = document.getElementById("camera-text-output");
+const camOutput = document.getElementById("camera-sign-output");
+
+let stream = null;
+
+startCam.onclick = async () => {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    cameraFeed.srcObject = stream;
+  } catch {
+    alert("Camera access denied");
+  }
+};
+
+scanCam.onclick = () => {
+  camOutput.innerHTML = "";
+
+  const demo = [
+    { emotion: "Happy 😄", sign: "HAPPY" },
+    { emotion: "Neutral 👤", sign: "HELLO" }
+  ];
+
+  const res = demo[Math.floor(Math.random() * demo.length)];
+
+  camEmotion.textContent = res.emotion;
+
+  // CASE 1: Happy → show symbol
+  if (res.emotion.includes("Happy")) {
+    camText.textContent = "---";
+    const img = document.createElement("img");
+    img.src = ASL_IMAGE_PATHS["H"];
+    img.onerror = () => img.src = fallback("H");
+    camOutput.appendChild(img);
+  }
+  // CASE 2: Sign → show text
+  else {
+    camText.textContent = res.sign;
+    res.sign.split("").forEach(l => {
+      const img = document.createElement("img");
+      img.src = ASL_IMAGE_PATHS[l];
+      img.onerror = () => img.src = fallback(l);
+      camOutput.appendChild(img);
+    });
+  }
+};
+</script>
 
 </body>
 </html>
+
