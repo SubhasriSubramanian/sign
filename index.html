@@ -2,65 +2,74 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voice to Sign Language Animation System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- (STYLE SECTION UNCHANGED – SAME AS YOUR ORIGINAL) -->
     <style>
-        /* --- Design and Interface Styling --- */
         :root {
             --primary-color: #0056b3;
-            --secondary-color: #28a745;
             --background-color: #eef2f7;
-            --card-background: #ffffff;
-            --highlight-color: #ffc107;
-            --listening-color: #dc3545;
-            --detected-color: #00bcd4;
         }
+
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: Arial, sans-serif;
             margin: 0;
-            background-color: var(--background-color);
+            background: var(--background-color);
         }
+
         header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1.5rem 0;
+            background: var(--primary-color);
+            color: #fff;
+            padding: 20px;
             text-align: center;
         }
-        main {
-            padding: 20px;
-            max-width: 1200px;
-            margin: auto;
-        }
+
         .container {
-            background: white;
-            padding: 40px;
-            margin-bottom: 30px;
+            background: #fff;
+            margin: 30px auto;
+            padding: 30px;
+            max-width: 1000px;
             border-radius: 12px;
         }
-        .input-area, .output-area {
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            margin: 20px 0;
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
         }
-        #fingerspell-output, #camera-sign-output {
+
+        button {
+            padding: 10px 15px;
+            margin: 8px 5px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .input-area, .output-area {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        #fingerspell-output,
+        #camera-sign-output {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
             gap: 10px;
             margin-top: 15px;
         }
+
         img {
-            width: 85px;
-            height: 85px;
+            width: 80px;
+            height: 80px;
             border: 2px solid var(--primary-color);
             border-radius: 8px;
         }
+
         video {
-            border-radius: 10px;
             border: 2px solid #ccc;
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -71,17 +80,13 @@
     <h1>🗣️ Voice to Sign Language Image Animation System</h1>
 </header>
 
-<main>
+<section class="container">
 
-<section id="demo" class="container">
+    <h2>1. Forward Translation (Text / Voice → Sign)</h2>
 
-    <h2>Live Demonstration (Prototype)</h2>
+    <textarea id="text-input" rows="4" placeholder="Type text here..."></textarea>
 
-    <!-- ================= EXISTING FEATURE ================= -->
-    <h3>1. Forward Translation (Text / Voice → Sign)</h3>
-
-    <textarea id="text-input" rows="4" placeholder="Type text here..."></textarea><br><br>
-
+    <br>
     <button id="voice-input-btn">🎤 Use Voice Input</button>
     <button id="translate-btn">Translate to Sign Language</button>
 
@@ -89,18 +94,14 @@
         <div id="fingerspell-output">
             <p>Waiting for input...</p>
         </div>
-        <p class="emotion-feedback">
-            Emotion Detected: <span id="emotion-output">Awaiting Input</span>
+        <p><strong>Emotion Detected:</strong>
+            <span id="emotion-output">Awaiting Input</span>
         </p>
     </div>
 
-    <!-- ==================================================== -->
-    <!-- ========== ADDED CAMERA-BASED CONCEPT ============== -->
-    <!-- ==================================================== -->
-
     <hr style="margin:40px 0;">
 
-    <h3>2. Camera-Based Emotion & Sign Recognition (Additional Concept)</h3>
+    <h2>2. Camera-Based Emotion & Sign Recognition</h2>
     <p>This module demonstrates reverse communication using camera input.</p>
 
     <div class="input-area">
@@ -124,70 +125,92 @@
         </div>
     </div>
 
-    <!-- ==================================================== -->
-    <!-- ========== END OF ADDED CAMERA CONCEPT ============== -->
-    <!-- ==================================================== -->
-
 </section>
 
-</main>
-
-<!-- (SCRIPT SECTION UNCHANGED – YOUR EXISTING LOGIC WILL CONTINUE) -->
+<!-- ===================== ALL JAVASCRIPT APPENDED HERE ===================== -->
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
 
-    const ASL_IMAGE_PATHS = {};
+    /* ---------- ASL IMAGE MAP ---------- */
+    const ASL_IMAGES = {};
     for (let i = 65; i <= 90; i++) {
-        ASL_IMAGE_PATHS[String.fromCharCode(i)] = `images/${String.fromCharCode(i)}.png`;
+        ASL_IMAGES[String.fromCharCode(i)] =
+            `https://placehold.co/80x80/0056b3/ffffff?text=${String.fromCharCode(i)}`;
     }
-    const getFallbackUrl = c =>
-        `https://placehold.co/85x85/0056b3/ffffff?text=${c}`;
 
-    /* ===== CAMERA SIMULATION LOGIC (NEW FEATURE) ===== */
-    const cameraFeed = document.getElementById('camera-feed');
-    const startCameraBtn = document.getElementById('start-camera-btn');
-    const scanCameraBtn = document.getElementById('scan-camera-btn');
-    const cameraEmotionOutput = document.getElementById('camera-emotion-output');
-    const cameraTextOutput = document.getElementById('camera-text-output');
-    const cameraSignOutput = document.getElementById('camera-sign-output');
+    /* ---------- FORWARD TRANSLATION ---------- */
+    const textInput = document.getElementById("text-input");
+    const translateBtn = document.getElementById("translate-btn");
+    const outputArea = document.getElementById("fingerspell-output");
+    const emotionOutput = document.getElementById("emotion-output");
 
-    let cameraStarted = false;
+    translateBtn.addEventListener("click", () => {
+        const text = textInput.value.toUpperCase().replace(/[^A-Z]/g, "");
+        outputArea.innerHTML = "";
+
+        if (!text) {
+            outputArea.innerHTML = "<p>No valid characters</p>";
+            return;
+        }
+
+        text.split("").forEach(char => {
+            const img = document.createElement("img");
+            img.src = ASL_IMAGES[char];
+            img.alt = char;
+            outputArea.appendChild(img);
+        });
+
+        emotionOutput.textContent = "Neutral 🙂";
+    });
+
+    /* ---------- VOICE INPUT ---------- */
+    const voiceBtn = document.getElementById("voice-input-btn");
+    if ("webkitSpeechRecognition" in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = "en-US";
+
+        voiceBtn.onclick = () => recognition.start();
+
+        recognition.onresult = e => {
+            textInput.value = e.results[0][0].transcript;
+        };
+    } else {
+        voiceBtn.disabled = true;
+        voiceBtn.textContent = "Voice not supported";
+    }
+
+    /* ---------- CAMERA MODULE ---------- */
+    const cameraFeed = document.getElementById("camera-feed");
+    const startCameraBtn = document.getElementById("start-camera-btn");
+    const scanCameraBtn = document.getElementById("scan-camera-btn");
+
+    const camEmotion = document.getElementById("camera-emotion-output");
+    const camText = document.getElementById("camera-text-output");
+    const camSign = document.getElementById("camera-sign-output");
 
     startCameraBtn.onclick = async () => {
-        if (cameraStarted) return;
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         cameraFeed.srcObject = stream;
-        cameraStarted = true;
     };
 
     scanCameraBtn.onclick = () => {
-        cameraSignOutput.innerHTML = '';
+        camSign.innerHTML = "";
 
-        const emotions = ["Happy 😄", "Neutral 👤"];
-        const signs = ["HELLO", "THANK YOU"];
+        const emotions = ["Happy 😄", "Neutral 😐"];
+        const words = ["HELLO", "THANKYOU"];
 
-        const detectedEmotion = emotions[Math.floor(Math.random() * emotions.length)];
-        const detectedSign = signs[Math.floor(Math.random() * signs.length)];
+        const emotion = emotions[Math.floor(Math.random() * emotions.length)];
+        const word = words[Math.floor(Math.random() * words.length)];
 
-        if (detectedEmotion.includes("Happy")) {
-            cameraEmotionOutput.textContent = detectedEmotion;
-            cameraTextOutput.textContent = "—";
+        camEmotion.textContent = emotion;
+        camText.textContent = word;
 
-            const img = document.createElement('img');
-            img.src = ASL_IMAGE_PATHS["H"] || getFallbackUrl("H");
-            cameraSignOutput.appendChild(img);
-        } else {
-            cameraEmotionOutput.textContent = detectedEmotion;
-            cameraTextOutput.textContent = detectedSign;
-
-            detectedSign.replace(/\s/g, '').split('').forEach(l => {
-                const img = document.createElement('img');
-                img.src = ASL_IMAGE_PATHS[l] || getFallbackUrl(l);
-                cameraSignOutput.appendChild(img);
-            });
-        }
+        word.split("").forEach(c => {
+            const img = document.createElement("img");
+            img.src = ASL_IMAGES[c];
+            camSign.appendChild(img);
+        });
     };
-
 });
 </script>
 
