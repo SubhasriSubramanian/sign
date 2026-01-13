@@ -505,5 +505,37 @@
             }
         });
     </script>
+    <hr style="margin:40px 0;">
+
+<section id="camera" class="container">
+  <h2>📷 Camera-Based Emotion & Sign Recognition</h2>
+  <p>
+    This module enables reverse communication.  
+    When a deaf person shows an emotion or sign in front of the camera,  
+    the system detects and displays the corresponding symbol or text.
+  </p>
+
+  <div class="input-area">
+    <video id="camera-feed" width="320" height="240" autoplay muted></video>
+    <br><br>
+    <button id="start-camera-btn">📷 Start Camera</button>
+    <button id="scan-camera-btn">🔍 Analyze Camera Frame</button>
+  </div>
+
+  <div class="output-area">
+    <p><strong>Camera Detected Emotion:</strong>
+      <span id="camera-emotion-output">None</span>
+    </p>
+
+    <p><strong>Camera Detected Text:</strong>
+      <span id="camera-text-output">None</span>
+    </p>
+
+    <div id="camera-sign-output">
+      <p style="color:#6c757d;">Camera output will appear here</p>
+    </div>
+  </div>
+</section>
+
 </body>
 </html>
