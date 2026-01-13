@@ -1,75 +1,7 @@
 /* ===============================
-   CAMERA + SIGN SIMULATION LOGIC
+   CAMERA-BASED SIGN & EMOTION DEMO
+   (SIMULATED – AI READY)
 ================================ */
-
-const camera = document.getElementById('camera');
-const startCameraBtn = document.getElementById('start-camera-btn');
-const scanBtn = document.getElementById('scan-btn');
-const cameraEmotion = document.getElementById('camera-emotion');
-const cameraText = document.getElementById('camera-text');
-const cameraSignOutput = document.getElementById('camera-sign-output');
-
-let streamStarted = false;
-
-// Start Camera
-startCameraBtn.addEventListener('click', async () => {
-    if (streamStarted) return;
-
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        camera.srcObject = stream;
-        streamStarted = true;
-    } catch (err) {
-        alert("Camera access denied.");
-    }
-});
-
-// Scan Frame (SIMULATED AI)
-scanBtn.addEventListener('click', () => {
-    cameraSignOutput.innerHTML = '';
-
-    /* -----------------------------
-       SIMULATED DETECTION LOGIC
-       (Replace with ML later)
-    ------------------------------ */
-
-    const emotions = ["Happy 😄", "Neutral 👤"];
-    const signs = ["HELLO", "THANK YOU"];
-
-    const detectedEmotion = emotions[Math.floor(Math.random() * emotions.length)];
-    const detectedSign = signs[Math.floor(Math.random() * signs.length)];
-
-    // CASE 1: Deaf person HAPPY → show symbol
-    if (detectedEmotion.includes("Happy")) {
-        cameraEmotion.textContent = detectedEmotion;
-        cameraText.textContent = "—";
-
-        const img = document.createElement('img');
-        img.src = ASL_IMAGE_PATHS["H"];
-        img.onerror = () => img.src = getFallbackUrl("H");
-        cameraSignOutput.appendChild(img);
-    }
-
-    // CASE 2: Deaf person shows sign → show text
-    else {
-        cameraEmotion.textContent = detectedEmotion;
-        cameraText.textContent = detectedSign;
-
-        simulateCameraFingerspelling(detectedSign);
-    }
-});
-
-// Display sign letters from camera
-function simulateCameraFingerspelling(word) {
-    const letters = word.split('');
-    letters.forEach(letter => {
-        const img = document.createElement('img');
-        img.src = ASL_IMAGE_PATHS[letter];
-        img.onerror = () => img.src = getFallbackUrl(letter);
-        cameraSignOutput.appendChild(img);
-    });
-}
-// ================= CAMERA MODULE =================
 
 const cameraFeed = document.getElementById("camera-feed");
 const startCameraBtn = document.getElementById("start-camera-btn");
@@ -78,51 +10,78 @@ const cameraEmotionOutput = document.getElementById("camera-emotion-output");
 const cameraTextOutput = document.getElementById("camera-text-output");
 const cameraSignOutput = document.getElementById("camera-sign-output");
 
-// SAFETY CHECK (very important)
-if (cameraFeed && startCameraBtn && scanCameraBtn) {
+// SAFETY CHECK – prevents JS crash
+if (
+  cameraFeed &&
+  startCameraBtn &&
+  scanCameraBtn &&
+  cameraEmotionOutput &&
+  cameraTextOutput &&
+  cameraSignOutput
+) {
+  let cameraStreamStarted = false;
 
-  let cameraStream = null;
-
+  // ▶ START CAMERA
   startCameraBtn.addEventListener("click", async () => {
+    if (cameraStreamStarted) return;
+
     try {
-      cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-      cameraFeed.srcObject = cameraStream;
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      cameraFeed.srcObject = stream;
+      cameraStreamStarted = true;
     } catch (err) {
-      alert("Camera access denied or not available.");
+      alert("Camera permission denied or not supported.");
     }
   });
 
+  // 🔍 ANALYZE CAMERA (SIMULATION)
   scanCameraBtn.addEventListener("click", () => {
-    // 🔴 DEMO LOGIC (simulation – no AI model)
-    const demoResults = [
-      { emotion: "Happy 😄", sign: "HAPPY" },
-      { emotion: "Sad 😢", sign: "SAD" },
-      { emotion: "Angry 😠", sign: "ANGRY" },
-      { emotion: "Neutral 👤", sign: "HELLO" }
+    cameraSignOutput.innerHTML = "";
+
+    /* ---- SIMULATED AI OUTPUT ---- */
+    const samples = [
+      { emotion: "Happy 😄", sign: "HAPPY", mode: "emotion" },
+      { emotion: "Neutral 👤", sign: "HELLO", mode: "sign" },
+      { emotion: "Neutral 👤", sign: "THANKYOU", mode: "sign" }
     ];
 
-    const result = demoResults[Math.floor(Math.random() * demoResults.length)];
+    const result = samples[Math.floor(Math.random() * samples.length)];
 
     cameraEmotionOutput.textContent = result.emotion;
-    cameraTextOutput.textContent = result.sign;
 
-    // Show sign images
-    cameraSignOutput.innerHTML = "";
-    const letters = result.sign.split("");
+    // CASE 1: Deaf person HAPPY → show symbol
+    if (result.mode === "emotion") {
+      cameraTextOutput.textContent = "—";
+
+      showCameraSigns("HAPPY");
+    }
+
+    // CASE 2: Deaf person shows SIGN → show TEXT
+    else {
+      cameraTextOutput.textContent = result.sign;
+
+      showCameraSigns(result.sign);
+    }
+  });
+
+  // DISPLAY SIGN LETTERS
+  function showCameraSigns(word) {
+    const letters = word.split("");
 
     letters.forEach(letter => {
       const img = document.createElement("img");
-      img.src = `images/${letter}.png`;
+      img.src = ASL_IMAGE_PATHS[letter] || getFallbackUrl(letter);
       img.alt = letter;
       img.style.width = "70px";
       img.style.margin = "5px";
 
       img.onerror = function () {
-        this.src = `https://placehold.co/70x70/0056b3/ffffff?text=${letter}`;
+        this.src = getFallbackUrl(letter);
       };
 
       cameraSignOutput.appendChild(img);
     });
-  });
+  }
 }
+
 
