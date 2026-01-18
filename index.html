@@ -163,7 +163,7 @@
         .btn-danger { background-color: var(--listening-color); color: white; }
 
         /* Output Area */
-        #fingerspell-output {
+        .result-box {
             min-height: 120px;
             display: flex;
             flex-direction: column;
@@ -225,7 +225,7 @@
     <!-- Hero Headline Section -->
     <section id="home">
         <div id="hero">
-            <h2>Bridging Communication Gaps with AI</h2>
+            <h2>Bridging Communication Gaps</h2>
             <p>Convert Voice, Text, or Facial Expressions into Sign Language symbols and animations in real-time. Supporting multiple languages for inclusive communication.</p>
         </div>
     </section>
@@ -253,15 +253,15 @@
             <button id="translate-btn" class="btn-primary">Translate to Sign</button>
         </div>
 
-        <div id="fingerspell-output">
-            <p style="color:#888;">Animations and spelled-out signs will appear here...</p>
+        <div id="fingerspell-output" class="result-box">
+            <p style="color:#888;">Translation results will appear here...</p>
         </div>
     </section>
 
     <!-- Section 2: Camera Recognition -->
     <section id="reverse" class="container">
         <h2>📷 Reverse Detection (Sign/Face → Text)</h2>
-        <p>Enable your camera to simulate AI detection of hand signs (like 'V') and facial emotions.</p>
+        <p>Enable your camera to detect hand signs (like 'V') and facial emotions.</p>
         
         <div class="camera-wrapper">
             <video id="video-feed" autoplay playsinline muted></video>
@@ -273,11 +273,16 @@
             <button id="start-camera-btn" class="btn-primary">Enable Camera Feed</button>
             <button id="mock-sign-btn" class="btn-secondary" disabled>Detect Hand Sign</button>
             <button id="mock-emotion-btn" class="btn-danger" disabled>Detect Face Emotion</button>
+            <button id="clear-detection-btn" class="btn-warning" style="display: none;">Clear/Reset</button>
         </div>
         <p style="text-align:center; font-size:0.8rem; color:#666; margin-top:10px;">Shortcut: Press 'V' on keyboard when camera is live to simulate detection.</p>
 
-        <div id="detection-results" style="margin-top:20px; padding:15px; background:#fff3cd; border-radius:8px; display:none;">
-            <strong>System Result:</strong> <span id="output-text">None</span>
+        <div id="detection-results" style="margin-top:20px; padding:15px; background:#fff3cd; border-radius:8px; border: 1px solid #ffeeba;">
+            <strong>System Result:</strong> <span id="output-text">No sign detected</span>
+        </div>
+
+        <div id="reverse-sign-output" class="result-box">
+            <p style="color:#888;">Detection results will appear here...</p>
         </div>
     </section>
 
@@ -300,6 +305,7 @@
         const voiceBtn = document.getElementById('voice-input-btn');
         const translateBtn = document.getElementById('translate-btn');
         const fingerspellDiv = document.getElementById('fingerspell-output');
+        const reverseOutputDiv = document.getElementById('reverse-sign-output');
         const useLocalToggle = document.getElementById('use-local-images');
         const languageSelect = document.getElementById('language-select');
         
@@ -308,6 +314,7 @@
         const startCamBtn = document.getElementById('start-camera-btn');
         const mockSignBtn = document.getElementById('mock-sign-btn');
         const mockEmotionBtn = document.getElementById('mock-emotion-btn');
+        const clearBtn = document.getElementById('clear-detection-btn');
         const resultDiv = document.getElementById('detection-results');
         const outputText = document.getElementById('output-text');
         const placeholder = document.getElementById('placeholder-text');
@@ -324,16 +331,15 @@
             return `https://placehold.co/90x90/0056b3/ffffff?text=${char.toUpperCase()}`;
         };
 
+        // Forward Translation Logic
         const displaySignSequence = (text) => {
             fingerspellDiv.innerHTML = '';
             const cleanText = text.toUpperCase().trim();
             if (!cleanText) return;
 
-            // Container for images
             const alphabetRow = document.createElement('div');
             alphabetRow.className = 'alphabet-row';
 
-            // If it's a known emotion, show the header first
             if (emotions[cleanText]) {
                 const data = emotions[cleanText];
                 fingerspellDiv.style.background = data.color;
@@ -350,6 +356,50 @@
             }
 
             fingerspellDiv.appendChild(alphabetRow);
+
+            const chars = cleanText.split('');
+            chars.forEach((char, index) => {
+                if (/[A-Z0-9]/.test(char)) {
+                    setTimeout(() => {
+                        const img = document.createElement('img');
+                        img.src = getSignUrl(char);
+                        img.className = 'sign-img';
+                        img.onerror = function() { 
+                            this.src = `https://placehold.co/90x90/666/fff?text=${char}`; 
+                        };
+                        alphabetRow.appendChild(img);
+                    }, index * 300);
+                }
+            });
+        };
+
+        // Reverse Detection Display Logic
+        const displayDetectionSequence = (text, isEmotion = false) => {
+            reverseOutputDiv.innerHTML = '';
+            const cleanText = text.toUpperCase().trim();
+            if (!cleanText) {
+                reverseOutputDiv.innerHTML = '<p style="color:#888;">No active detection</p>';
+                return;
+            }
+
+            const alphabetRow = document.createElement('div');
+            alphabetRow.className = 'alphabet-row';
+
+            if (isEmotion && emotions[cleanText]) {
+                const data = emotions[cleanText];
+                reverseOutputDiv.style.background = data.color;
+                
+                const header = document.createElement('div');
+                header.className = 'emotion-header';
+                header.innerHTML = `
+                    <div class="emotion-symbol">${data.symbol}</div>
+                    <div style="font-weight:bold; color:${data.emotionColor}">${data.label}</div>
+                `;
+                reverseOutputDiv.appendChild(header);
+                setTimeout(() => { reverseOutputDiv.style.background = "#f8f9fa"; }, 4000);
+            }
+
+            reverseOutputDiv.appendChild(alphabetRow);
 
             const chars = cleanText.split('');
             chars.forEach((char, index) => {
@@ -395,7 +445,9 @@
                 placeholder.style.display = 'none';
                 mockSignBtn.disabled = false;
                 mockEmotionBtn.disabled = false;
+                clearBtn.style.display = 'inline-block';
                 startCamBtn.textContent = "Disable Camera";
+                outputText.textContent = "No sign detected";
             } catch (err) { alert("Camera Error: Access Denied"); }
         };
 
@@ -406,41 +458,57 @@
                 placeholder.style.display = 'block';
                 mockSignBtn.disabled = true;
                 mockEmotionBtn.disabled = true;
+                clearBtn.style.display = 'none';
                 startCamBtn.textContent = "Enable Camera Feed";
+                outputText.textContent = "No sign detected";
+                reverseOutputDiv.innerHTML = '<p style="color:#888;">Detection results will appear here...</p>';
                 stream = null;
             }
         };
 
         startCamBtn.onclick = () => stream ? stopCamera() : startCamera();
 
-        const showDetection = (label, result, isEmotion = false) => {
-            overlay.textContent = `AI Detected: ${label}`;
+        const showDetectionStatus = (label, result, isEmotion = false) => {
+            if (label === null) {
+                overlay.style.display = 'none';
+                outputText.textContent = "No sign detected";
+                return;
+            }
+            overlay.textContent = `Detected: ${label}`;
             overlay.style.display = 'block';
             overlay.style.backgroundColor = isEmotion ? (emotions[label]?.emotionColor || '#000') : 'rgba(40, 167, 69, 0.9)';
-            resultDiv.style.display = 'block';
             outputText.innerHTML = `<strong>${result}</strong>`;
             setTimeout(() => { overlay.style.display = 'none'; }, 2000);
         };
 
         const triggerSignDetection = (char) => {
-            showDetection(`Sign "${char}"`, `Recognition successful! matches "${char}".`);
-            displaySignSequence(char);
+            showDetectionStatus(`Sign "${char}"`, `Recognition successful! Matched gesture "${char}".`);
+            displayDetectionSequence(char);
         };
 
         mockSignBtn.onclick = () => {
             const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            triggerSignDetection(chars[Math.floor(Math.random() * chars.length)]);
+            const randomChar = chars[Math.floor(Math.random() * chars.length)];
+            triggerSignDetection(randomChar);
+        };
+
+        clearBtn.onclick = () => {
+            outputText.textContent = "No sign detected";
+            reverseOutputDiv.innerHTML = '<p style="color:#888;">Detection results will appear here...</p>';
+            overlay.style.display = 'none';
         };
 
         document.addEventListener('keydown', (e) => {
-            if (stream && e.key.toLowerCase() === 'v') triggerSignDetection('V');
+            if (stream && e.key.toLowerCase() === 'v') {
+                triggerSignDetection('V');
+            }
         });
 
         mockEmotionBtn.onclick = () => {
             const keys = Object.keys(emotions);
             const key = keys[Math.floor(Math.random() * keys.length)];
-            showDetection(key, `Facial mood detected: ${emotions[key].label}`, true);
-            displaySignSequence(key);
+            showDetectionStatus(key, `Facial mood detected: ${emotions[key].label}`, true);
+            displayDetectionSequence(key, true);
         };
     });
 </script>
